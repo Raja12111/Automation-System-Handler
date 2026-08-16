@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OptiSync Automation Handler</title>
+    <style>
+      :root {
+        --green: #05cc47;
+        --ink: #505050;
+        --muted: #a3a3a3;
+        --bg: #0f1412;
+        --card: #171d1a;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+        background: radial-gradient(1200px 600px at 10% -10%, #123322 0%, var(--bg) 50%);
+        color: #e8eee9;
+        display: grid;
+        place-items: center;
+        padding: 32px 16px;
+      }
+      main {
+        width: min(640px, 100%);
+        background: var(--card);
+        border: 1px solid #24302a;
+        border-radius: 16px;
+        padding: 28px;
+      }
+      h1 { margin: 0 0 8px; font-size: 1.4rem; }
+      p { color: var(--muted); line-height: 1.5; }
+      .ok { color: var(--green); font-weight: 700; letter-spacing: 0.04em; }
+      code {
+        display: block;
+        margin-top: 16px;
+        padding: 12px 14px;
+        background: #101613;
+        border-radius: 10px;
+        color: #c9f5d8;
+        overflow-x: auto;
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="ok">ONLINE</div>
+      <h1>OptiSync Automation Handler</h1>
+      <p>
+        This Vercel service accepts authenticated jobs from OptiSync
+        (<code style="display:inline;padding:2px 6px">opti-sync-pied.vercel.app</code>).
+      </p>
+      <code>GET /api/health<br />POST /api/jobs<br />GET /api/optisync</code>
+    </main>
+  </body>
+</html>

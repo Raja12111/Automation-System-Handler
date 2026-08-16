@@ -1,0 +1,13 @@
+{
+  "name": "automation-system-handler",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Vercel automation handler for OptiSync jobs, webhooks, and scheduled work.",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel deploy --prod --yes"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
