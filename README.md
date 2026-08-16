@@ -2,7 +2,8 @@
 
 Vercel handler for [OptiSync](https://github.com/Raja12111/OptiSync). OptiSync dispatches automation jobs here; this service acknowledges them and can call back into OptiSync.
 
-Production team: **opti-sync1**. GitHub: [Raja12111/Automation-System-Handler](https://github.com/Raja12111/Automation-System-Handler).
+Production: https://automation-system-handler.vercel.app  
+Vercel team: **opti-sync1**. GitHub: [Raja12111/Automation-System-Handler](https://github.com/Raja12111/Automation-System-Handler). Pushes to `main` auto-deploy.
 
 ## Endpoints
 
