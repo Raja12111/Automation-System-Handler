@@ -83,13 +83,17 @@
       <section class="card">
         <div class="ok">ADMIN</div>
         <h1>Admin Settings</h1>
-        <p>Same OptiSync Admin Setup: meta-tag AI prompts and AI Generation Credits. Changes save to OptiSync.</p>
+        <p>Same OptiSync Admin Setup: meta-tag AI prompts and AI Generation Credits. Sign in with your OptiSync admin account.</p>
 
         <div id="lock">
           <label>
-            <span>Handler secret</span>
-            <small>Use the shared HANDLER_SECRET / AUTOMATION_HANDLER_SECRET</small>
-            <input id="secret" type="password" autocomplete="current-password" />
+            <span>Admin email</span>
+            <small>Your OptiSync admin login, not a Vercel secret</small>
+            <input id="email" type="email" autocomplete="username" placeholder="admin@optisync.com" />
+          </label>
+          <label>
+            <span>Password</span>
+            <input id="password" type="password" autocomplete="current-password" />
           </label>
           <div class="row">
             <button class="primary" type="button" id="unlock">Unlock settings</button>
@@ -159,20 +163,20 @@
       const flash = document.getElementById("flash");
       const lock = document.getElementById("lock");
       const app = document.getElementById("app");
-      const secretInput = document.getElementById("secret");
+      const emailInput = document.getElementById("email");
+      const passwordInput = document.getElementById("password");
       let defaults = null;
 
       function show(msg, kind) {
         flash.innerHTML = msg ? `<p class="msg ${kind}">${msg}</p>` : "";
       }
-      function secret() {
-        return sessionStorage.getItem("handlerSecret") || secretInput.value.trim();
+      function token() {
+        return sessionStorage.getItem("adminToken") || "";
       }
       function headers() {
         return {
-          Authorization: "Bearer " + secret(),
+          Authorization: "Bearer " + token(),
           "Content-Type": "application/json",
-          "X-Handler-Secret": secret(),
         };
       }
       function fmt(n) {
@@ -214,26 +218,38 @@
 
       async function unlock() {
         show("", "ok");
-        const value = secretInput.value.trim();
-        if (!value) {
-          show("Enter the handler secret.", "err");
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+        if (!email || !password) {
+          show("Enter your OptiSync admin email and password.", "err");
           return;
         }
-        sessionStorage.setItem("handlerSecret", value);
         try {
+          const login = await fetch("/api/admin/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+          const data = await login.json().catch(() => ({}));
+          if (!login.ok) throw new Error(data.error || "Could not sign in.");
+          sessionStorage.setItem("adminToken", data.token);
+          sessionStorage.removeItem("handlerSecret");
           const prompts = await api("/api/admin/prompts");
           fillPrompts(prompts);
           lock.classList.add("hidden");
           app.classList.remove("hidden");
-          show("Admin settings unlocked.", "ok");
+          show("Signed in as " + (data.user && data.user.email ? data.user.email : "admin") + ".", "ok");
         } catch (e) {
-          sessionStorage.removeItem("handlerSecret");
+          sessionStorage.removeItem("adminToken");
           show(e.message || "Could not unlock.", "err");
         }
       }
 
       document.getElementById("unlock").onclick = unlock;
-      secretInput.addEventListener("keydown", (e) => {
+      passwordInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") unlock();
+      });
+      emailInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") unlock();
       });
 
@@ -297,9 +313,14 @@
         }
       };
 
-      if (sessionStorage.getItem("handlerSecret")) {
-        secretInput.value = sessionStorage.getItem("handlerSecret");
-        unlock();
+      if (sessionStorage.getItem("adminToken")) {
+        api("/api/admin/prompts")
+          .then((prompts) => {
+            fillPrompts(prompts);
+            lock.classList.add("hidden");
+            app.classList.remove("hidden");
+          })
+          .catch(() => sessionStorage.removeItem("adminToken"));
       }
     </script>
   </body>

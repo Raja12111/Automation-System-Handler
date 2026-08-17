@@ -10,7 +10,8 @@ Vercel team: **opti-sync1**. GitHub: [Raja12111/Automation-System-Handler](https
 | Method | Path | Auth | Purpose |
 |--------|------|------|---------|
 | GET | `/` | no | Status page |
-| GET | `/admin` | Handler secret in UI | Admin Settings (prompts + credits) |
+| GET | `/admin` | OptiSync admin login | Admin Settings (prompts + credits) |
+| POST | `/api/admin/login` | OptiSync admin email/password | Issue admin session token |
 | GET | `/api/health` | no | Liveness + config flag |
 | GET/POST | `/api/optisync` | Bearer `HANDLER_SECRET` | Handshake with OptiSync |
 | GET/POST | `/api/jobs` | Bearer `HANDLER_SECRET` | Accept a job payload |

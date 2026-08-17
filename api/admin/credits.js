@@ -1,4 +1,4 @@
-const { requireHandlerAuth } = require("../../lib/auth");
+const { requireAdminAccess } = require("../../lib/admin-session");
 const { optisyncFetch } = require("../../lib/optisync");
 
 module.exports = async function handler(req, res) {
@@ -6,7 +6,7 @@ module.exports = async function handler(req, res) {
     return res.status(204).end();
   }
 
-  const auth = requireHandlerAuth(req);
+  const auth = requireAdminAccess(req);
   if (!auth.ok) {
     return res.status(401).json({ ok: false, error: auth.error });
   }
