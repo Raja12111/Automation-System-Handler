@@ -19,6 +19,7 @@ Vercel team: **opti-sync1**. GitHub: [Raja12111/Automation-System-Handler](https
 | GET/POST | `/api/admin/credits` | Admin session | OptiSync AI Generation Credits |
 | GET/POST | `/api/admin/users` | Admin session | List sign-ups and create users |
 | GET/POST | `/api/admin/super-credits` | Admin session | Super Credits (Authority Hype only) |
+| GET/POST | `/api/admin/subscriptions` | Admin session | $69/website/month subscriptions |
 
 ## Environment
 

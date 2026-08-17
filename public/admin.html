@@ -174,6 +174,7 @@
         <nav class="nav" aria-label="Admin">
           <button type="button" class="active" data-tab="users">All users</button>
           <button type="button" data-tab="new-user">New user</button>
+          <button type="button" data-tab="subscriptions">Subscriptions</button>
           <button type="button" data-tab="prompts">Meta tag prompts</button>
           <button type="button" data-tab="credits">Credits</button>
         </nav>
@@ -238,6 +239,29 @@
               <button class="primary" type="submit">Create user</button>
             </div>
           </form>
+        </section>
+
+        <section id="subscriptions" class="panel hidden">
+          <div class="ok">BILLING</div>
+          <h1>Website subscriptions</h1>
+          <p>OptiSync starts at $69 per website per month. Start or cancel the plan for each site.</p>
+          <div class="stats" style="margin-top:16px">
+            <div class="stat"><em>PRICE</em><b id="sub-price">$69</b></div>
+            <div class="stat"><em>ACTIVE SITES</em><b id="sub-active">—</b></div>
+            <div class="stat"><em>MONTHLY TOTAL</em><b id="sub-total">—</b></div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Website</th>
+                <th>Company</th>
+                <th>Status</th>
+                <th>Renews</th>
+                <th>Plan</th>
+              </tr>
+            </thead>
+            <tbody id="sub-rows"></tbody>
+          </table>
         </section>
 
         <section id="prompts" class="panel hidden">
@@ -386,7 +410,7 @@
       }
       function setTab(tab) {
         document.querySelectorAll(".nav button").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
-        ["users", "new-user", "prompts", "credits"].forEach((id) => {
+        ["users", "new-user", "subscriptions", "prompts", "credits"].forEach((id) => {
           document.getElementById(id).classList.toggle("hidden", id !== tab);
         });
       }
@@ -463,6 +487,33 @@
             }).join("")
           : `<tr><td colspan="4">No Super Credit accounts yet.</td></tr>`;
       }
+      function money(n) {
+        return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n || 0);
+      }
+      function fillSubscriptions(json) {
+        document.getElementById("sub-price").textContent = money(json.priceUsd || 69);
+        document.getElementById("sub-active").textContent = fmt(json.activeCount);
+        document.getElementById("sub-total").textContent = money(json.monthlyTotalUsd);
+        const sites = json.websites || [];
+        document.getElementById("sub-rows").innerHTML = sites.length
+          ? sites.map((site) => {
+              const status = site.status === "ACTIVE" ? "Active" : site.status === "CANCELED" ? "Canceled" : "Not subscribed";
+              const renews = site.status === "ACTIVE" && site.currentPeriodEnd
+                ? new Date(site.currentPeriodEnd).toLocaleDateString()
+                : "—";
+              const action = site.status === "ACTIVE"
+                ? `<button class="ghost" type="button" data-sub="cancel" data-id="${site.clientId}">Cancel</button>`
+                : `<button class="primary" type="button" data-sub="start" data-id="${site.clientId}">Start $69/mo</button>`;
+              return `<tr>
+                <td>${site.accountLabel}<br><small>${site.website || "—"}</small></td>
+                <td>${site.companyName || "—"}</td>
+                <td>${status}</td>
+                <td>${renews}</td>
+                <td>${action}</td>
+              </tr>`;
+            }).join("")
+          : `<tr><td colspan="5">No websites yet.</td></tr>`;
+      }
       function fillUsers(json) {
         const users = json.users || [];
         document.getElementById("u-total").textContent = fmt(json.total || users.length);
@@ -520,6 +571,7 @@
           setTab(tab);
           try {
             if (tab === "users") fillUsers(await api("/api/admin/users"));
+            if (tab === "subscriptions") fillSubscriptions(await api("/api/admin/subscriptions"));
             if (tab === "prompts") fillPrompts(await api("/api/admin/prompts"));
             if (tab === "credits") {
               fillCredits(await api("/api/admin/credits"));
@@ -529,6 +581,21 @@
             show(e.message, "err");
           }
         };
+      });
+
+      document.getElementById("sub-rows").addEventListener("click", async (e) => {
+        const btn = e.target.closest("button[data-sub]");
+        if (!btn) return;
+        try {
+          const json = await api("/api/admin/subscriptions", {
+            method: "POST",
+            body: JSON.stringify({ clientId: btn.dataset.id, action: btn.dataset.sub }),
+          });
+          fillSubscriptions(json);
+          show(btn.dataset.sub === "start" ? "Website subscription started at $69/month." : "Website subscription canceled.", "ok");
+        } catch (err) {
+          show(err.message, "err");
+        }
       });
 
       document.getElementById("create-user").onsubmit = async (e) => {
