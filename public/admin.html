@@ -266,14 +266,15 @@
 
         <section id="credits" class="panel hidden">
           <div class="ok">CREDITS</div>
-          <h1>AI Generation Credits</h1>
-          <p>Workspace totals, then each OptiSync account’s used credits and available AI Generation Quota.</p>
+          <h1>Credit stats</h1>
+          <p>Two separate wallets. AI Generation Credits are for SEO Bot AI. Super Credits can only be used for Authority Hype.</p>
+
+          <h2 style="margin:20px 0 8px;font-size:1.05rem;color:#3f3f3f">AI Generation Credits</h2>
           <div class="stats">
             <div class="stat"><em>AVAILABLE</em><b id="c-remaining">—</b></div>
             <div class="stat"><em>USED</em><b id="c-used">—</b></div>
             <div class="stat"><em>QUOTA</em><b id="c-quota">—</b></div>
           </div>
-          <h2 style="margin:24px 0 8px;font-size:1.05rem;color:#3f3f3f">By account</h2>
           <table>
             <thead>
               <tr>
@@ -299,7 +300,7 @@
                 <span>Reason</span>
                 <input id="grant-reason" type="text" value="Admin top-up" maxlength="200" />
               </label>
-              <button class="primary" type="submit" style="align-self:end">Add credits</button>
+              <button class="primary" type="submit" style="align-self:end">Add AI credits</button>
             </div>
           </form>
           <table>
@@ -308,6 +309,42 @@
             </thead>
             <tbody id="history"></tbody>
           </table>
+
+          <h2 style="margin:32px 0 8px;font-size:1.05rem;color:#3f3f3f">Super Credits</h2>
+          <p>Authority Hype only (Cloud Stack, Google Stack, Foundational Links). Cannot be spent on AI generation.</p>
+          <div class="stats">
+            <div class="stat"><em>AVAILABLE</em><b id="s-remaining">—</b></div>
+            <div class="stat"><em>USED</em><b id="s-used">—</b></div>
+            <div class="stat"><em>QUOTA</em><b id="s-quota">—</b></div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Account</th>
+                <th>Used</th>
+                <th>Available Super Credits</th>
+                <th>Quota</th>
+              </tr>
+            </thead>
+            <tbody id="super-accounts"></tbody>
+          </table>
+          <form id="grant-super">
+            <div class="row">
+              <label style="margin:0;min-width:14rem;flex:1">
+                <span>Account</span>
+                <select id="super-user"></select>
+              </label>
+              <label style="margin:0;min-width:8rem">
+                <span>Amount</span>
+                <input id="super-amount" type="number" min="1" step="1" value="1000" />
+              </label>
+              <label style="margin:0;flex:1;min-width:12rem">
+                <span>Reason</span>
+                <input id="super-reason" type="text" value="Authority Hype Super Credits" maxlength="200" />
+              </label>
+              <button class="primary" type="submit" style="align-self:end">Add Super Credits</button>
+            </div>
+          </form>
         </section>
       </main>
     </div>
@@ -397,6 +434,35 @@
           ? rows.join("")
           : `<tr><td colspan="4">No credit activity yet.</td></tr>`;
       }
+      function fillSuperCredits(json) {
+        const totals = json.totals || json;
+        document.getElementById("s-remaining").textContent = fmt(totals.remaining);
+        document.getElementById("s-used").textContent = fmt(totals.used);
+        document.getElementById("s-quota").textContent = fmt(totals.quota);
+        const selected = document.getElementById("super-user").value;
+        const accounts = json.accounts || [];
+        document.getElementById("super-user").innerHTML = accounts
+          .map((row) => `<option value="${row.userId}">${row.name || row.email} (${row.email})</option>`)
+          .join("");
+        if (selected && accounts.some((row) => row.userId === selected)) {
+          document.getElementById("super-user").value = selected;
+        } else if (json.granted && json.granted.userId) {
+          document.getElementById("super-user").value = json.granted.userId;
+        }
+        document.getElementById("super-accounts").innerHTML = accounts.length
+          ? accounts.map((row) => {
+              const available = row.remaining > 0
+                ? `<span class="badge">${fmt(row.remaining)} available</span>`
+                : `<span class="badge muted">0 available</span>`;
+              return `<tr>
+                <td>${row.name || "—"}<br><small>${row.email} · ${row.role}</small></td>
+                <td>${fmt(row.used)}</td>
+                <td>${available}</td>
+                <td>${fmt(row.quota)}</td>
+              </tr>`;
+            }).join("")
+          : `<tr><td colspan="4">No Super Credit accounts yet.</td></tr>`;
+      }
       function fillUsers(json) {
         const users = json.users || [];
         document.getElementById("u-total").textContent = fmt(json.total || users.length);
@@ -455,7 +521,10 @@
           try {
             if (tab === "users") fillUsers(await api("/api/admin/users"));
             if (tab === "prompts") fillPrompts(await api("/api/admin/prompts"));
-            if (tab === "credits") fillCredits(await api("/api/admin/credits"));
+            if (tab === "credits") {
+              fillCredits(await api("/api/admin/credits"));
+              fillSuperCredits(await api("/api/admin/super-credits"));
+            }
           } catch (e) {
             show(e.message, "err");
           }
@@ -523,7 +592,25 @@
             }),
           });
           fillCredits(json);
-          show("Added credits on OptiSync.", "ok");
+          show("Added AI Generation Credits on OptiSync.", "ok");
+        } catch (err) {
+          show(err.message, "err");
+        }
+      };
+
+      document.getElementById("grant-super").onsubmit = async (e) => {
+        e.preventDefault();
+        try {
+          const json = await api("/api/admin/super-credits", {
+            method: "POST",
+            body: JSON.stringify({
+              userId: document.getElementById("super-user").value,
+              amount: Number(document.getElementById("super-amount").value),
+              reason: document.getElementById("super-reason").value,
+            }),
+          });
+          fillSuperCredits(json);
+          show("Added Super Credits for Authority Hype.", "ok");
         } catch (err) {
           show(err.message, "err");
         }
