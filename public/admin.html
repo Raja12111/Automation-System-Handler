@@ -3,42 +3,51 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Admin Settings — OptiSync Handler</title>
+    <title>Admin — OptiSync Handler</title>
     <style>
       :root {
-        --green: #05cc47;
-        --ink: #e8eee9;
-        --muted: #a3a3a3;
-        --bg: #0f1412;
-        --card: #171d1a;
-        --line: #24302a;
-        --surface: #101613;
-        --danger: #f87171;
+        --brand: #05cc47;
+        --brand-hover: #04b33e;
+        --brand-dark: #047a2c;
+        --brand-soft: rgba(5, 204, 71, 0.12);
+        --ink: #505050;
+        --muted: #8a8a8a;
+        --line: rgba(15, 23, 42, 0.1);
+        --surface: #ffffff;
+        --bg: #f4f6f5;
+        --sidebar: #fbfcfb;
+        --danger: #b42318;
       }
       * { box-sizing: border-box; }
       body {
         margin: 0;
         min-height: 100vh;
         font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
-        background: radial-gradient(1200px 600px at 10% -10%, #123322 0%, var(--bg) 50%);
+        background: var(--bg);
         color: var(--ink);
-        padding: 32px 16px 48px;
       }
-      .wrap { width: min(880px, 100%); margin: 0 auto; }
+      a { color: var(--brand-dark); }
+      .login-wrap {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
       .card {
-        background: var(--card);
+        width: min(440px, 100%);
+        background: var(--surface);
         border: 1px solid var(--line);
         border-radius: 16px;
         padding: 28px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
       }
-      .ok { color: var(--green); font-weight: 700; letter-spacing: 0.04em; font-size: 0.8rem; }
-      h1 { margin: 6px 0 8px; font-size: 1.4rem; }
+      .ok { color: var(--brand-dark); font-weight: 700; letter-spacing: 0.04em; font-size: 0.75rem; }
+      h1 { margin: 6px 0 8px; font-size: 1.35rem; color: #3f3f3f; }
       p { color: var(--muted); line-height: 1.5; }
-      a { color: var(--green); }
-      label { display: block; margin-top: 16px; }
-      label span { display: block; font-size: 0.92rem; font-weight: 600; }
+      label { display: block; margin-top: 14px; }
+      label span { display: block; font-size: 0.9rem; font-weight: 600; }
       label small { display: block; margin-top: 2px; color: var(--muted); font-size: 0.75rem; }
-      input, textarea {
+      input, textarea, select {
         width: 100%;
         margin-top: 8px;
         border: 1px solid var(--line);
@@ -57,118 +66,248 @@
         font-weight: 600;
         cursor: pointer;
       }
-      .primary { background: var(--green); color: #062214; }
-      .ghost { background: #1c2621; color: var(--ink); border: 1px solid var(--line); }
-      .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0; }
-      .tab { background: #1c2621; color: var(--muted); border: 1px solid var(--line); }
-      .tab.active { background: var(--green); color: #062214; }
+      .primary { background: var(--brand); color: #062214; }
+      .primary:hover { background: var(--brand-hover); }
+      .ghost { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+      .layout { display: flex; min-height: 100vh; }
+      .sidebar {
+        width: 240px;
+        flex-shrink: 0;
+        background: var(--sidebar);
+        border-right: 1px solid var(--line);
+        padding: 22px 16px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 22px;
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 99px;
+        background: var(--brand);
+      }
+      .brand strong { display: block; font-size: 0.92rem; color: #3f3f3f; }
+      .brand small { color: var(--muted); font-size: 0.72rem; }
+      .nav { display: grid; gap: 6px; }
+      .nav button {
+        width: 100%;
+        text-align: left;
+        border-radius: 12px;
+        background: transparent;
+        color: var(--ink);
+        padding: 10px 12px;
+      }
+      .nav button.active {
+        background: var(--brand-soft);
+        color: var(--brand-dark);
+      }
+      .main { flex: 1; padding: 28px; }
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 24px;
+      }
       .msg { margin: 0 0 16px; padding: 12px 14px; border-radius: 12px; font-size: 0.9rem; }
-      .msg.ok { background: #10281b; color: #86efac; border: 1px solid #1d4d32; }
-      .msg.err { background: #2a1414; color: var(--danger); border: 1px solid #5b2222; letter-spacing: 0; font-weight: 500; }
+      .msg.ok { background: #edfaf1; color: var(--brand-dark); border: 1px solid #c8efd5; }
+      .msg.err { background: #fef3f2; color: var(--danger); border: 1px solid #fecdca; }
       .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-      .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
-      .stat b { display: block; font-size: 1.4rem; margin-top: 6px; }
-      .stat em { font-style: normal; color: var(--green); font-size: 0.72rem; letter-spacing: 0.08em; font-weight: 700; }
-      table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.85rem; }
-      th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); }
+      .stat { background: #f8faf9; border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+      .stat b { display: block; font-size: 1.4rem; margin-top: 6px; color: #3f3f3f; }
+      .stat em { font-style: normal; color: var(--brand-dark); font-size: 0.72rem; letter-spacing: 0.08em; font-weight: 700; }
+      table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.88rem; }
+      th, td { text-align: left; padding: 11px 8px; border-bottom: 1px solid var(--line); }
       th { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; }
-      .hidden { display: none; }
-      @media (max-width: 700px) { .stats { grid-template-columns: 1fr; } }
+      .badge {
+        display: inline-block;
+        border-radius: 999px;
+        padding: 2px 8px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        background: var(--brand-soft);
+        color: var(--brand-dark);
+      }
+      .badge.muted { background: #eef1f0; color: var(--muted); }
+      .hidden { display: none !important; }
+      .check { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+      .check input { width: auto; margin: 0; }
+      @media (max-width: 800px) {
+        .layout { display: block; }
+        .sidebar { width: 100%; border-right: 0; border-bottom: 1px solid var(--line); }
+        .stats { grid-template-columns: 1fr; }
+      }
     </style>
   </head>
   <body>
-    <div class="wrap">
-      <p><a href="/">← Handler home</a></p>
-      <div id="flash"></div>
+    <div id="gate" class="login-wrap">
       <section class="card">
         <div class="ok">ADMIN</div>
-        <h1>Admin Settings</h1>
-        <p>Same OptiSync Admin Setup: meta-tag AI prompts and AI Generation Credits. Sign in with your OptiSync admin account.</p>
+        <h1>Handler Admin</h1>
+        <p>Sign in with your OptiSync admin account to manage users, prompts, and credits.</p>
+        <div id="flash-login"></div>
+        <label>
+          <span>Admin email</span>
+          <input id="email" type="email" autocomplete="username" placeholder="handler@optisync.com" />
+        </label>
+        <label>
+          <span>Password</span>
+          <input id="password" type="password" autocomplete="current-password" />
+        </label>
+        <div class="row">
+          <button class="primary" type="button" id="unlock">Sign in</button>
+        </div>
+      </section>
+    </div>
 
-        <div id="lock">
-          <label>
-            <span>Admin email</span>
-            <small>Your OptiSync admin login, not a Vercel secret</small>
-            <input id="email" type="email" autocomplete="username" placeholder="admin@optisync.com" />
-          </label>
-          <label>
-            <span>Password</span>
-            <input id="password" type="password" autocomplete="current-password" />
-          </label>
-          <div class="row">
-            <button class="primary" type="button" id="unlock">Unlock settings</button>
+    <div id="shell" class="layout hidden">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="dot"></span>
+          <div>
+            <strong>OptiSync Handler</strong>
+            <small>Admin settings</small>
           </div>
         </div>
+        <nav class="nav" aria-label="Admin">
+          <button type="button" class="active" data-tab="users">All users</button>
+          <button type="button" data-tab="new-user">New user</button>
+          <button type="button" data-tab="prompts">Meta tag prompts</button>
+          <button type="button" data-tab="credits">Credits</button>
+        </nav>
+        <p style="margin-top:24px;font-size:0.8rem"><a href="/">Handler home</a></p>
+      </aside>
+      <main class="main">
+        <div id="flash"></div>
 
-        <div id="app" class="hidden">
-          <div class="tabs">
-            <button class="tab active" type="button" data-tab="prompts">Meta tag prompts</button>
-            <button class="tab" type="button" data-tab="credits">Credits</button>
+        <section id="users" class="panel">
+          <div class="ok">USERS</div>
+          <h1>All users</h1>
+          <p>Everyone who signed up or was created in OptiSync. New sign-ups from the last 14 days are marked.</p>
+          <div class="stats" style="margin-top:16px">
+            <div class="stat"><em>TOTAL</em><b id="u-total">—</b></div>
+            <div class="stat"><em>NEW SIGN-UPS</em><b id="u-new">—</b></div>
+            <div class="stat"><em>ADMINS</em><b id="u-admins">—</b></div>
           </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Signed up</th>
+                <th>Method</th>
+              </tr>
+            </thead>
+            <tbody id="user-rows"></tbody>
+          </table>
+        </section>
 
-          <form id="prompts">
-            <p>These ChatGPT system prompts drive SEO Bot title and meta description generation. Empty fields use the built-in OptiSync defaults.</p>
+        <section id="new-user" class="panel hidden">
+          <div class="ok">NEW USER</div>
+          <h1>Add a user</h1>
+          <p>Creates an OptiSync login. They can sign in on OptiSync immediately.</p>
+          <form id="create-user">
+            <label>
+              <span>Name</span>
+              <input id="nu-name" required />
+            </label>
+            <label>
+              <span>Email</span>
+              <input id="nu-email" type="email" required />
+            </label>
+            <label>
+              <span>Password</span>
+              <small>At least 6 characters</small>
+              <input id="nu-password" type="password" minlength="6" required />
+            </label>
+            <label>
+              <span>Role</span>
+              <select id="nu-role">
+                <option value="CLIENT">Agency / client</option>
+                <option value="ADMIN">Admin</option>
+              </select>
+            </label>
+            <label class="check">
+              <input id="nu-all" type="checkbox" checked />
+              <span>Access all websites</span>
+            </label>
+            <div class="row">
+              <button class="primary" type="submit">Create user</button>
+            </div>
+          </form>
+        </section>
+
+        <section id="prompts" class="panel hidden">
+          <div class="ok">PROMPTS</div>
+          <h1>Meta tag prompts</h1>
+          <p>These ChatGPT prompts drive SEO Bot title and meta description generation.</p>
+          <form id="prompts-form">
             <label>
               <span>System prompt <small style="display:inline;font-weight:400">(optional)</small></span>
-              <small>Key: meta_system_prompt</small>
               <textarea id="meta_system_prompt" rows="3"></textarea>
             </label>
             <label>
               <span>Meta title prompt</span>
-              <small>Key: meta_title_prompt</small>
               <textarea id="meta_title_prompt" rows="6"></textarea>
             </label>
             <label>
               <span>Meta description prompt</span>
-              <small>Key: meta_description_prompt</small>
               <textarea id="meta_description_prompt" rows="6"></textarea>
             </label>
             <div class="row">
-              <button class="primary" type="submit" id="savePrompts">Save prompts</button>
+              <button class="primary" type="submit">Save prompts</button>
               <button class="ghost" type="button" id="restore">Restore defaults</button>
             </div>
           </form>
+        </section>
 
-          <div id="credits" class="hidden">
-            <div class="stats">
-              <div class="stat"><em>REMAINING</em><b id="c-remaining">—</b></div>
-              <div class="stat"><em>USED</em><b id="c-used">—</b></div>
-              <div class="stat"><em>QUOTA</em><b id="c-quota">—</b></div>
-            </div>
-            <p id="credit-user"></p>
-            <form id="grant">
-              <div class="row">
-                <label style="margin:0;min-width:8rem">
-                  <span>Amount</span>
-                  <input id="grant-amount" type="number" min="1" step="1" value="1000" />
-                </label>
-                <label style="margin:0;flex:1;min-width:12rem">
-                  <span>Reason</span>
-                  <input id="grant-reason" type="text" value="Admin top-up" maxlength="200" />
-                </label>
-                <button class="primary" type="submit" style="align-self:end">Add credits</button>
-              </div>
-            </form>
-            <table>
-              <thead>
-                <tr><th>Date</th><th>Type</th><th>Amount</th><th>Description</th></tr>
-              </thead>
-              <tbody id="history"></tbody>
-            </table>
+        <section id="credits" class="panel hidden">
+          <div class="ok">CREDITS</div>
+          <h1>AI Generation Credits</h1>
+          <div class="stats">
+            <div class="stat"><em>REMAINING</em><b id="c-remaining">—</b></div>
+            <div class="stat"><em>USED</em><b id="c-used">—</b></div>
+            <div class="stat"><em>QUOTA</em><b id="c-quota">—</b></div>
           </div>
-        </div>
-      </section>
+          <p id="credit-user"></p>
+          <form id="grant">
+            <div class="row">
+              <label style="margin:0;min-width:8rem">
+                <span>Amount</span>
+                <input id="grant-amount" type="number" min="1" step="1" value="1000" />
+              </label>
+              <label style="margin:0;flex:1;min-width:12rem">
+                <span>Reason</span>
+                <input id="grant-reason" type="text" value="Admin top-up" maxlength="200" />
+              </label>
+              <button class="primary" type="submit" style="align-self:end">Add credits</button>
+            </div>
+          </form>
+          <table>
+            <thead>
+              <tr><th>Date</th><th>Type</th><th>Amount</th><th>Description</th></tr>
+            </thead>
+            <tbody id="history"></tbody>
+          </table>
+        </section>
+      </main>
     </div>
+
     <script>
+      const gate = document.getElementById("gate");
+      const shell = document.getElementById("shell");
       const flash = document.getElementById("flash");
-      const lock = document.getElementById("lock");
-      const app = document.getElementById("app");
+      const flashLogin = document.getElementById("flash-login");
       const emailInput = document.getElementById("email");
       const passwordInput = document.getElementById("password");
       let defaults = null;
 
-      function show(msg, kind) {
-        flash.innerHTML = msg ? `<p class="msg ${kind}">${msg}</p>` : "";
+      function show(msg, kind, target) {
+        const el = target || flash;
+        el.innerHTML = msg ? `<p class="msg ${kind}">${msg}</p>` : "";
       }
       function token() {
         return sessionStorage.getItem("adminToken") || "";
@@ -182,21 +321,28 @@
       function fmt(n) {
         return new Intl.NumberFormat("en-US").format(n || 0);
       }
-
       async function api(path, init) {
         const res = await fetch(path, { ...init, headers: { ...headers(), ...(init && init.headers || {}) } });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || "Request failed");
         return data;
       }
-
+      function openApp() {
+        gate.classList.add("hidden");
+        shell.classList.remove("hidden");
+      }
+      function setTab(tab) {
+        document.querySelectorAll(".nav button").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+        ["users", "new-user", "prompts", "credits"].forEach((id) => {
+          document.getElementById(id).classList.toggle("hidden", id !== tab);
+        });
+      }
       function fillPrompts(json) {
         document.getElementById("meta_system_prompt").value = json.prompts.meta_system_prompt || "";
         document.getElementById("meta_title_prompt").value = json.prompts.meta_title_prompt || "";
         document.getElementById("meta_description_prompt").value = json.prompts.meta_description_prompt || "";
         defaults = json.defaults;
       }
-
       function fillCredits(json) {
         document.getElementById("c-remaining").textContent = fmt(json.remaining);
         document.getElementById("c-used").textContent = fmt(json.used);
@@ -215,13 +361,32 @@
           ? rows.join("")
           : `<tr><td colspan="4">No credit activity yet.</td></tr>`;
       }
+      function fillUsers(json) {
+        const users = json.users || [];
+        document.getElementById("u-total").textContent = fmt(json.total || users.length);
+        document.getElementById("u-new").textContent = fmt((json.recent || []).length);
+        document.getElementById("u-admins").textContent = fmt(users.filter((u) => u.role === "ADMIN").length);
+        document.getElementById("user-rows").innerHTML = users.length
+          ? users.map((user) => {
+              const when = new Date(user.createdAt).toLocaleString();
+              const badge = user.isNew ? '<span class="badge">New</span>' : '<span class="badge muted">Existing</span>';
+              return `<tr>
+                <td>${user.name || "—"} ${badge}</td>
+                <td>${user.email}</td>
+                <td>${user.role}</td>
+                <td>${when}</td>
+                <td>${user.signupMethod || "—"}</td>
+              </tr>`;
+            }).join("")
+          : `<tr><td colspan="5">No users yet.</td></tr>`;
+      }
 
       async function unlock() {
-        show("", "ok");
+        show("", "ok", flashLogin);
         const email = emailInput.value.trim();
         const password = passwordInput.value;
         if (!email || !password) {
-          show("Enter your OptiSync admin email and password.", "err");
+          show("Enter your OptiSync admin email and password.", "err", flashLogin);
           return;
         }
         try {
@@ -233,44 +398,58 @@
           const data = await login.json().catch(() => ({}));
           if (!login.ok) throw new Error(data.error || "Could not sign in.");
           sessionStorage.setItem("adminToken", data.token);
-          sessionStorage.removeItem("handlerSecret");
-          const prompts = await api("/api/admin/prompts");
-          fillPrompts(prompts);
-          lock.classList.add("hidden");
-          app.classList.remove("hidden");
+          fillUsers(await api("/api/admin/users"));
+          openApp();
+          setTab("users");
           show("Signed in as " + (data.user && data.user.email ? data.user.email : "admin") + ".", "ok");
         } catch (e) {
           sessionStorage.removeItem("adminToken");
-          show(e.message || "Could not unlock.", "err");
+          show(e.message || "Could not unlock.", "err", flashLogin);
         }
       }
 
       document.getElementById("unlock").onclick = unlock;
-      passwordInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") unlock();
-      });
-      emailInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") unlock();
-      });
+      passwordInput.addEventListener("keydown", (e) => { if (e.key === "Enter") unlock(); });
+      emailInput.addEventListener("keydown", (e) => { if (e.key === "Enter") unlock(); });
 
-      document.querySelectorAll(".tab").forEach((btn) => {
+      document.querySelectorAll(".nav button").forEach((btn) => {
         btn.onclick = async () => {
-          document.querySelectorAll(".tab").forEach((b) => b.classList.remove("active"));
-          btn.classList.add("active");
           const tab = btn.dataset.tab;
-          document.getElementById("prompts").classList.toggle("hidden", tab !== "prompts");
-          document.getElementById("credits").classList.toggle("hidden", tab !== "credits");
-          if (tab === "credits") {
-            try {
-              fillCredits(await api("/api/admin/credits"));
-            } catch (e) {
-              show(e.message, "err");
-            }
+          setTab(tab);
+          try {
+            if (tab === "users") fillUsers(await api("/api/admin/users"));
+            if (tab === "prompts") fillPrompts(await api("/api/admin/prompts"));
+            if (tab === "credits") fillCredits(await api("/api/admin/credits"));
+          } catch (e) {
+            show(e.message, "err");
           }
         };
       });
 
-      document.getElementById("prompts").onsubmit = async (e) => {
+      document.getElementById("create-user").onsubmit = async (e) => {
+        e.preventDefault();
+        try {
+          await api("/api/admin/users", {
+            method: "POST",
+            body: JSON.stringify({
+              name: document.getElementById("nu-name").value,
+              email: document.getElementById("nu-email").value,
+              password: document.getElementById("nu-password").value,
+              role: document.getElementById("nu-role").value,
+              seeAllAccounts: document.getElementById("nu-all").checked,
+            }),
+          });
+          document.getElementById("create-user").reset();
+          document.getElementById("nu-all").checked = true;
+          fillUsers(await api("/api/admin/users"));
+          setTab("users");
+          show("New user created in OptiSync.", "ok");
+        } catch (err) {
+          show(err.message, "err");
+        }
+      };
+
+      document.getElementById("prompts-form").onsubmit = async (e) => {
         e.preventDefault();
         try {
           const json = await api("/api/admin/prompts", {
@@ -314,11 +493,11 @@
       };
 
       if (sessionStorage.getItem("adminToken")) {
-        api("/api/admin/prompts")
-          .then((prompts) => {
-            fillPrompts(prompts);
-            lock.classList.add("hidden");
-            app.classList.remove("hidden");
+        api("/api/admin/users")
+          .then((json) => {
+            fillUsers(json);
+            openApp();
+            setTab("users");
           })
           .catch(() => sessionStorage.removeItem("adminToken"));
       }
