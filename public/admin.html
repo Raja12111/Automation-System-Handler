@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Settings — OptiSync Handler</title>
+    <style>
+      :root {
+        --green: #05cc47;
+        --ink: #e8eee9;
+        --muted: #a3a3a3;
+        --bg: #0f1412;
+        --card: #171d1a;
+        --line: #24302a;
+        --surface: #101613;
+        --danger: #f87171;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+        background: radial-gradient(1200px 600px at 10% -10%, #123322 0%, var(--bg) 50%);
+        color: var(--ink);
+        padding: 32px 16px 48px;
+      }
+      .wrap { width: min(880px, 100%); margin: 0 auto; }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 28px;
+      }
+      .ok { color: var(--green); font-weight: 700; letter-spacing: 0.04em; font-size: 0.8rem; }
+      h1 { margin: 6px 0 8px; font-size: 1.4rem; }
+      p { color: var(--muted); line-height: 1.5; }
+      a { color: var(--green); }
+      label { display: block; margin-top: 16px; }
+      label span { display: block; font-size: 0.92rem; font-weight: 600; }
+      label small { display: block; margin-top: 2px; color: var(--muted); font-size: 0.75rem; }
+      input, textarea {
+        width: 100%;
+        margin-top: 8px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--ink);
+        border-radius: 10px;
+        padding: 10px 12px;
+        font: inherit;
+      }
+      textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+      .row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+      button {
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 16px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .primary { background: var(--green); color: #062214; }
+      .ghost { background: #1c2621; color: var(--ink); border: 1px solid var(--line); }
+      .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0; }
+      .tab { background: #1c2621; color: var(--muted); border: 1px solid var(--line); }
+      .tab.active { background: var(--green); color: #062214; }
+      .msg { margin: 0 0 16px; padding: 12px 14px; border-radius: 12px; font-size: 0.9rem; }
+      .msg.ok { background: #10281b; color: #86efac; border: 1px solid #1d4d32; }
+      .msg.err { background: #2a1414; color: var(--danger); border: 1px solid #5b2222; letter-spacing: 0; font-weight: 500; }
+      .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+      .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+      .stat b { display: block; font-size: 1.4rem; margin-top: 6px; }
+      .stat em { font-style: normal; color: var(--green); font-size: 0.72rem; letter-spacing: 0.08em; font-weight: 700; }
+      table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.85rem; }
+      th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); }
+      th { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; }
+      .hidden { display: none; }
+      @media (max-width: 700px) { .stats { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <p><a href="/">← Handler home</a></p>
+      <div id="flash"></div>
+      <section class="card">
+        <div class="ok">ADMIN</div>
+        <h1>Admin Settings</h1>
+        <p>Same OptiSync Admin Setup: meta-tag AI prompts and AI Generation Credits. Changes save to OptiSync.</p>
+
+        <div id="lock">
+          <label>
+            <span>Handler secret</span>
+            <small>Use the shared HANDLER_SECRET / AUTOMATION_HANDLER_SECRET</small>
+            <input id="secret" type="password" autocomplete="current-password" />
+          </label>
+          <div class="row">
+            <button class="primary" type="button" id="unlock">Unlock settings</button>
+          </div>
+        </div>
+
+        <div id="app" class="hidden">
+          <div class="tabs">
+            <button class="tab active" type="button" data-tab="prompts">Meta tag prompts</button>
+            <button class="tab" type="button" data-tab="credits">Credits</button>
+          </div>
+
+          <form id="prompts">
+            <p>These ChatGPT system prompts drive SEO Bot title and meta description generation. Empty fields use the built-in OptiSync defaults.</p>
+            <label>
+              <span>System prompt <small style="display:inline;font-weight:400">(optional)</small></span>
+              <small>Key: meta_system_prompt</small>
+              <textarea id="meta_system_prompt" rows="3"></textarea>
+            </label>
+            <label>
+              <span>Meta title prompt</span>
+              <small>Key: meta_title_prompt</small>
+              <textarea id="meta_title_prompt" rows="6"></textarea>
+            </label>
+            <label>
+              <span>Meta description prompt</span>
+              <small>Key: meta_description_prompt</small>
+              <textarea id="meta_description_prompt" rows="6"></textarea>
+            </label>
+            <div class="row">
+              <button class="primary" type="submit" id="savePrompts">Save prompts</button>
+              <button class="ghost" type="button" id="restore">Restore defaults</button>
+            </div>
+          </form>
+
+          <div id="credits" class="hidden">
+            <div class="stats">
+              <div class="stat"><em>REMAINING</em><b id="c-remaining">—</b></div>
+              <div class="stat"><em>USED</em><b id="c-used">—</b></div>
+              <div class="stat"><em>QUOTA</em><b id="c-quota">—</b></div>
+            </div>
+            <p id="credit-user"></p>
+            <form id="grant">
+              <div class="row">
+                <label style="margin:0;min-width:8rem">
+                  <span>Amount</span>
+                  <input id="grant-amount" type="number" min="1" step="1" value="1000" />
+                </label>
+                <label style="margin:0;flex:1;min-width:12rem">
+                  <span>Reason</span>
+                  <input id="grant-reason" type="text" value="Admin top-up" maxlength="200" />
+                </label>
+                <button class="primary" type="submit" style="align-self:end">Add credits</button>
+              </div>
+            </form>
+            <table>
+              <thead>
+                <tr><th>Date</th><th>Type</th><th>Amount</th><th>Description</th></tr>
+              </thead>
+              <tbody id="history"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+    <script>
+      const flash = document.getElementById("flash");
+      const lock = document.getElementById("lock");
+      const app = document.getElementById("app");
+      const secretInput = document.getElementById("secret");
+      let defaults = null;
+
+      function show(msg, kind) {
+        flash.innerHTML = msg ? `<p class="msg ${kind}">${msg}</p>` : "";
+      }
+      function secret() {
+        return sessionStorage.getItem("handlerSecret") || secretInput.value.trim();
+      }
+      function headers() {
+        return {
+          Authorization: "Bearer " + secret(),
+          "Content-Type": "application/json",
+          "X-Handler-Secret": secret(),
+        };
+      }
+      function fmt(n) {
+        return new Intl.NumberFormat("en-US").format(n || 0);
+      }
+
+      async function api(path, init) {
+        const res = await fetch(path, { ...init, headers: { ...headers(), ...(init && init.headers || {}) } });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Request failed");
+        return data;
+      }
+
+      function fillPrompts(json) {
+        document.getElementById("meta_system_prompt").value = json.prompts.meta_system_prompt || "";
+        document.getElementById("meta_title_prompt").value = json.prompts.meta_title_prompt || "";
+        document.getElementById("meta_description_prompt").value = json.prompts.meta_description_prompt || "";
+        defaults = json.defaults;
+      }
+
+      function fillCredits(json) {
+        document.getElementById("c-remaining").textContent = fmt(json.remaining);
+        document.getElementById("c-used").textContent = fmt(json.used);
+        document.getElementById("c-quota").textContent = fmt(json.quota);
+        const user = json.user ? (json.user.email || json.user.name || json.user.id) : "";
+        document.getElementById("credit-user").textContent = user
+          ? "Granting to OptiSync admin " + user + "."
+          : "";
+        const rows = (json.history || []).map((entry) => {
+          const when = new Date(entry.createdAt).toLocaleString();
+          const type = entry.type === "GRANT" ? "Granted" : entry.type === "SPEND" ? "Spent" : entry.type;
+          const amt = (entry.amount > 0 ? "+" : "") + fmt(entry.amount);
+          return `<tr><td>${when}</td><td>${type}</td><td>${amt}</td><td>${entry.description || ""}</td></tr>`;
+        });
+        document.getElementById("history").innerHTML = rows.length
+          ? rows.join("")
+          : `<tr><td colspan="4">No credit activity yet.</td></tr>`;
+      }
+
+      async function unlock() {
+        show("", "ok");
+        const value = secretInput.value.trim();
+        if (!value) {
+          show("Enter the handler secret.", "err");
+          return;
+        }
+        sessionStorage.setItem("handlerSecret", value);
+        try {
+          const prompts = await api("/api/admin/prompts");
+          fillPrompts(prompts);
+          lock.classList.add("hidden");
+          app.classList.remove("hidden");
+          show("Admin settings unlocked.", "ok");
+        } catch (e) {
+          sessionStorage.removeItem("handlerSecret");
+          show(e.message || "Could not unlock.", "err");
+        }
+      }
+
+      document.getElementById("unlock").onclick = unlock;
+      secretInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") unlock();
+      });
+
+      document.querySelectorAll(".tab").forEach((btn) => {
+        btn.onclick = async () => {
+          document.querySelectorAll(".tab").forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          const tab = btn.dataset.tab;
+          document.getElementById("prompts").classList.toggle("hidden", tab !== "prompts");
+          document.getElementById("credits").classList.toggle("hidden", tab !== "credits");
+          if (tab === "credits") {
+            try {
+              fillCredits(await api("/api/admin/credits"));
+            } catch (e) {
+              show(e.message, "err");
+            }
+          }
+        };
+      });
+
+      document.getElementById("prompts").onsubmit = async (e) => {
+        e.preventDefault();
+        try {
+          const json = await api("/api/admin/prompts", {
+            method: "PUT",
+            body: JSON.stringify({
+              meta_system_prompt: document.getElementById("meta_system_prompt").value,
+              meta_title_prompt: document.getElementById("meta_title_prompt").value,
+              meta_description_prompt: document.getElementById("meta_description_prompt").value,
+            }),
+          });
+          fillPrompts(json);
+          show("Meta tag prompts saved to OptiSync.", "ok");
+        } catch (err) {
+          show(err.message, "err");
+        }
+      };
+
+      document.getElementById("restore").onclick = () => {
+        if (!defaults) return;
+        document.getElementById("meta_system_prompt").value = defaults.meta_system_prompt || "";
+        document.getElementById("meta_title_prompt").value = defaults.meta_title_prompt || "";
+        document.getElementById("meta_description_prompt").value = defaults.meta_description_prompt || "";
+        show("Restored built-in defaults in the form — click Save to apply.", "ok");
+      };
+
+      document.getElementById("grant").onsubmit = async (e) => {
+        e.preventDefault();
+        try {
+          const json = await api("/api/admin/credits", {
+            method: "POST",
+            body: JSON.stringify({
+              amount: Number(document.getElementById("grant-amount").value),
+              reason: document.getElementById("grant-reason").value,
+            }),
+          });
+          fillCredits(json);
+          show("Added credits on OptiSync.", "ok");
+        } catch (err) {
+          show(err.message, "err");
+        }
+      };
+
+      if (sessionStorage.getItem("handlerSecret")) {
+        secretInput.value = sessionStorage.getItem("handlerSecret");
+        unlock();
+      }
+    </script>
+  </body>
+</html>
