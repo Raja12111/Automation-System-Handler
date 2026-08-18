@@ -146,7 +146,7 @@
       <section class="card">
         <div class="ok">ADMIN</div>
         <h1>Handler Admin</h1>
-        <p>Sign in with your OptiSync admin account to manage users, prompts, and credits.</p>
+        <p>Sign in with your RankBrain X admin account to manage users, prompts, and credits.</p>
         <div id="flash-login"></div>
         <label>
           <span>Admin email</span>
@@ -167,8 +167,8 @@
         <div class="brand">
           <span class="dot"></span>
           <div>
-            <strong>OptiSync Handler</strong>
-            <small>Admin settings</small>
+            <strong>RankBrain X Handler</strong>
+            <small id="link-status">Admin settings</small>
           </div>
         </div>
         <nav class="nav" aria-label="Admin">
@@ -186,7 +186,7 @@
         <section id="users" class="panel">
           <div class="ok">USERS</div>
           <h1>All users</h1>
-          <p>Everyone who signed up or was created in OptiSync. New sign-ups from the last 14 days are marked.</p>
+          <p>Everyone who signed up or was created in RankBrain X. New sign-ups from the last 14 days are marked.</p>
           <div class="stats" style="margin-top:16px">
             <div class="stat"><em>TOTAL</em><b id="u-total">—</b></div>
             <div class="stat"><em>NEW SIGN-UPS</em><b id="u-new">—</b></div>
@@ -209,7 +209,7 @@
         <section id="new-user" class="panel hidden">
           <div class="ok">NEW USER</div>
           <h1>Add a user</h1>
-          <p>Creates an OptiSync login. They can sign in on OptiSync immediately.</p>
+          <p>Creates a RankBrain X login. They can sign in on RankBrain X immediately.</p>
           <form id="create-user">
             <label>
               <span>Name</span>
@@ -244,7 +244,7 @@
         <section id="subscriptions" class="panel hidden">
           <div class="ok">BILLING</div>
           <h1>Website subscriptions</h1>
-          <p>OptiSync starts at $69 per website per month. Start or cancel the plan for each site.</p>
+          <p>RankBrain X starts at $69 per website per month. Start or cancel the plan for each site.</p>
           <div class="stats" style="margin-top:16px">
             <div class="stat"><em>PRICE</em><b id="sub-price">$69</b></div>
             <div class="stat"><em>ACTIVE SITES</em><b id="sub-active">—</b></div>
@@ -514,6 +514,16 @@
             }).join("")
           : `<tr><td colspan="5">No websites yet.</td></tr>`;
       }
+      async function showLinkStatus() {
+        const el = document.getElementById("link-status");
+        if (!el) return;
+        try {
+          const json = await api("/api/optisync");
+          el.textContent = json.linked ? "Linked to RankBrain X" : "Handshake failed";
+        } catch (e) {
+          el.textContent = e.message || "Not linked";
+        }
+      }
       function fillUsers(json) {
         const users = json.users || [];
         document.getElementById("u-total").textContent = fmt(json.total || users.length);
@@ -555,6 +565,7 @@
           openApp();
           setTab("users");
           show("Signed in as " + (data.user && data.user.email ? data.user.email : "admin") + ".", "ok");
+          showLinkStatus();
         } catch (e) {
           sessionStorage.removeItem("adminToken");
           show(e.message || "Could not unlock.", "err", flashLogin);
@@ -615,7 +626,7 @@
           document.getElementById("nu-all").checked = true;
           fillUsers(await api("/api/admin/users"));
           setTab("users");
-          show("New user created in OptiSync.", "ok");
+          show("New user created in RankBrain X.", "ok");
         } catch (err) {
           show(err.message, "err");
         }
@@ -633,7 +644,7 @@
             }),
           });
           fillPrompts(json);
-          show("Meta tag prompts saved to OptiSync.", "ok");
+          show("Meta tag prompts saved to RankBrain X.", "ok");
         } catch (err) {
           show(err.message, "err");
         }
@@ -659,7 +670,7 @@
             }),
           });
           fillCredits(json);
-          show("Added AI Generation Credits on OptiSync.", "ok");
+          show("Added AI Generation Credits on RankBrain X.", "ok");
         } catch (err) {
           show(err.message, "err");
         }
@@ -686,10 +697,11 @@
       if (sessionStorage.getItem("adminToken")) {
         api("/api/admin/users")
           .then((json) => {
-            fillUsers(json);
-            openApp();
-            setTab("users");
-          })
+          fillUsers(json);
+          openApp();
+          setTab("users");
+          showLinkStatus();
+        })
           .catch(() => sessionStorage.removeItem("adminToken"));
       }
     </script>

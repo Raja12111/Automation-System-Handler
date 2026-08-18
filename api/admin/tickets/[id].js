@@ -1,0 +1,35 @@
+const { requireAdminAccess } = require("../../../lib/admin-session");
+const { optisyncFetch } = require("../../../lib/optisync");
+
+module.exports = async function handler(req, res) {
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
+
+  const auth = requireAdminAccess(req);
+  if (!auth.ok) {
+    return res.status(401).json({ ok: false, error: auth.error });
+  }
+
+  const id = encodeURIComponent(String(req.query.id || ""));
+  if (!id) {
+    return res.status(400).json({ ok: false, error: "Ticket id is required." });
+  }
+
+  if (req.method === "GET") {
+    const result = await optisyncFetch(`/api/automation/admin/tickets/${id}`, {
+      method: "GET",
+    });
+    return res.status(result.status || 502).json(result.data);
+  }
+
+  if (req.method === "POST") {
+    const result = await optisyncFetch(`/api/automation/admin/tickets/${id}`, {
+      method: "POST",
+      body: JSON.stringify(req.body || {}),
+    });
+    return res.status(result.status || 502).json(result.data);
+  }
+
+  return res.status(405).json({ ok: false, error: "Method not allowed" });
+};
