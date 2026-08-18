@@ -11,10 +11,12 @@ module.exports = async function handler(req, res) {
     return res.status(401).json({ ok: false, error: auth.error });
   }
 
-  if (req.method === "GET" || req.method === "POST") {
-    const result = await optisyncFetch("/api/automation/admin/api-usage", {
-      method: req.method,
-    });
+  if (req.method === "GET" || req.method === "POST" || req.method === "PUT") {
+    const method = req.method === "GET" ? "GET" : "POST";
+    let result = await optisyncFetch("/api/automation/admin/api-usage", { method });
+    if (!result.ok && result.status === 405 && method === "POST") {
+      result = await optisyncFetch("/api/automation/admin/api-usage", { method: "GET" });
+    }
     return res.status(result.status || 502).json(result.data);
   }
 
