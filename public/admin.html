@@ -176,6 +176,7 @@
           <button type="button" data-tab="new-user">New user</button>
           <button type="button" data-tab="subscriptions">Subscriptions</button>
           <button type="button" data-tab="prompts">Meta tag prompts</button>
+          <button type="button" data-tab="api">API</button>
           <button type="button" data-tab="credits">Credits</button>
         </nav>
         <p style="margin-top:24px;font-size:0.8rem"><a href="/">Handler home</a></p>
@@ -286,6 +287,49 @@
               <button class="ghost" type="button" id="restore">Restore defaults</button>
             </div>
           </form>
+        </section>
+
+        <section id="api" class="panel hidden">
+          <div class="ok">API</div>
+          <h1>API usage remaining</h1>
+          <p>RankBrain X uses two APIs: OpenAI (ChatGPT) and Claude. Remaining is this month’s budget minus spend, so you can see when each one finishes.</p>
+          <div class="stats" style="margin-top:16px">
+            <div class="stat"><em>OPENAI LEFT</em><b id="api-openai-left">—</b></div>
+            <div class="stat"><em>CLAUDE LEFT</em><b id="api-claude-left">—</b></div>
+            <div class="stat"><em>MONTH</em><b id="api-month">—</b></div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>API</th>
+                <th>Status</th>
+                <th>Remaining</th>
+                <th>Used</th>
+                <th>Budget</th>
+                <th>Calls / tokens</th>
+              </tr>
+            </thead>
+            <tbody id="api-rows"></tbody>
+          </table>
+          <form id="api-budgets">
+            <div class="row">
+              <label style="margin:0;min-width:10rem">
+                <span>OpenAI budget (USD)</span>
+                <input id="api-openai-budget" type="number" min="0.01" step="0.01" />
+              </label>
+              <label style="margin:0;min-width:10rem">
+                <span>Claude budget (USD)</span>
+                <input id="api-claude-budget" type="number" min="0.01" step="0.01" />
+              </label>
+              <button class="primary" type="submit" style="align-self:end">Save budgets</button>
+            </div>
+          </form>
+          <table>
+            <thead>
+              <tr><th>When</th><th>API</th><th>Model</th><th>Tokens</th><th>Cost</th></tr>
+            </thead>
+            <tbody id="api-recent"></tbody>
+          </table>
         </section>
 
         <section id="credits" class="panel hidden">
@@ -410,7 +454,7 @@
       }
       function setTab(tab) {
         document.querySelectorAll(".nav button").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
-        ["users", "new-user", "subscriptions", "prompts", "credits"].forEach((id) => {
+        ["users", "new-user", "subscriptions", "prompts", "api", "credits"].forEach((id) => {
           document.getElementById(id).classList.toggle("hidden", id !== tab);
         });
       }
@@ -524,6 +568,39 @@
           el.textContent = e.message || "Not linked";
         }
       }
+      function fillApiUsage(json) {
+        const providers = json.providers || [];
+        const openai = providers.find((row) => row.id === "openai") || {};
+        const claude = providers.find((row) => row.id === "anthropic") || {};
+        document.getElementById("api-month").textContent = json.month || "—";
+        document.getElementById("api-openai-left").textContent = money(openai.remainingUsd);
+        document.getElementById("api-claude-left").textContent = money(claude.remainingUsd);
+        document.getElementById("api-openai-budget").value = openai.budgetUsd || "";
+        document.getElementById("api-claude-budget").value = claude.budgetUsd || "";
+        document.getElementById("api-rows").innerHTML = providers.length
+          ? providers.map((row) => {
+              const status = row.status === "finished" ? "Finished" : row.status === "low" ? "Low" : row.status === "unconfigured" ? "Not configured" : "Available";
+              return `<tr>
+                <td>${row.label}<br><small>${row.model || ""}</small></td>
+                <td>${status}</td>
+                <td>${money(row.remainingUsd)}</td>
+                <td>${money(row.usedUsd)}</td>
+                <td>${money(row.budgetUsd)}</td>
+                <td>${fmt(row.calls)} · ${fmt(row.promptTokens)} / ${fmt(row.completionTokens)}</td>
+              </tr>`;
+            }).join("")
+          : `<tr><td colspan="6">No API usage yet.</td></tr>`;
+        const recent = json.recent || [];
+        document.getElementById("api-recent").innerHTML = recent.length
+          ? recent.map((row) => `<tr>
+              <td>${new Date(row.at).toLocaleString()}</td>
+              <td>${row.provider === "anthropic" ? "Claude" : "OpenAI"}</td>
+              <td>${row.model || "—"}</td>
+              <td>${fmt(row.promptTokens)} / ${fmt(row.completionTokens)}</td>
+              <td>${money(row.costUsd)}</td>
+            </tr>`).join("")
+          : `<tr><td colspan="5">No API calls recorded this month yet.</td></tr>`;
+      }
       function fillUsers(json) {
         const users = json.users || [];
         document.getElementById("u-total").textContent = fmt(json.total || users.length);
@@ -584,6 +661,7 @@
             if (tab === "users") fillUsers(await api("/api/admin/users"));
             if (tab === "subscriptions") fillSubscriptions(await api("/api/admin/subscriptions"));
             if (tab === "prompts") fillPrompts(await api("/api/admin/prompts"));
+            if (tab === "api") fillApiUsage(await api("/api/admin/api-usage"));
             if (tab === "credits") {
               fillCredits(await api("/api/admin/credits"));
               fillSuperCredits(await api("/api/admin/super-credits"));
@@ -656,6 +734,23 @@
         document.getElementById("meta_title_prompt").value = defaults.meta_title_prompt || "";
         document.getElementById("meta_description_prompt").value = defaults.meta_description_prompt || "";
         show("Restored built-in defaults in the form — click Save to apply.", "ok");
+      };
+
+      document.getElementById("api-budgets").onsubmit = async (e) => {
+        e.preventDefault();
+        try {
+          const json = await api("/api/admin/api-usage", {
+            method: "PUT",
+            body: JSON.stringify({
+              openaiUsd: Number(document.getElementById("api-openai-budget").value),
+              anthropicUsd: Number(document.getElementById("api-claude-budget").value),
+            }),
+          });
+          fillApiUsage(json);
+          show("Monthly API budgets saved.", "ok");
+        } catch (err) {
+          show(err.message, "err");
+        }
       };
 
       document.getElementById("grant").onsubmit = async (e) => {

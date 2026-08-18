@@ -21,6 +21,7 @@ Vercel team: **opti-sync1**. GitHub: [Raja12111/Automation-System-Handler](https
 | GET/POST | `/api/admin/users` | Admin session | List sign-ups and create users |
 | GET/POST | `/api/admin/super-credits` | Admin session | Super Credits (Authority Hype only) |
 | GET/POST | `/api/admin/subscriptions` | Admin session | $69/website/month subscriptions |
+| GET/PUT | `/api/admin/api-usage` | Admin session | OpenAI + Claude remaining usage |
 | GET | `/api/admin/tickets` | Admin session | Support tickets |
 | GET/POST | `/api/admin/tickets/:id` | Admin session | Ticket detail + updates |
 
