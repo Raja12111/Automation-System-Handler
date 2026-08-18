@@ -292,14 +292,14 @@
         <section id="api" class="panel hidden">
           <div class="ok">API</div>
           <h1>API usage remaining</h1>
-          <p>Exact remaining credits from the OpenAI and Claude accounts RankBrain X is logged into — not an estimate from our own calls.</p>
+          <p>Sign in to OpenAI and Claude, then connect the account so we can extract the exact remaining credits — not an estimate from our own calls.</p>
           <div class="stats" style="margin-top:16px">
             <div class="stat"><em>OPENAI LEFT</em><b id="api-openai-left">—</b></div>
             <div class="stat"><em>CLAUDE LEFT</em><b id="api-claude-left">—</b></div>
             <div class="stat"><em>SYNCED</em><b id="api-month">—</b></div>
           </div>
           <div class="row">
-            <button class="primary" type="button" id="api-sync">Sync from OpenAI &amp; Claude</button>
+            <button class="primary" type="button" id="api-sync">Sync connected accounts</button>
           </div>
           <table>
             <thead>
@@ -314,6 +314,44 @@
             </thead>
             <tbody id="api-rows"></tbody>
           </table>
+          <div class="stats" style="margin-top:20px;grid-template-columns:1fr 1fr">
+            <form id="connect-openai" class="stat" style="text-align:left">
+              <em>CONNECT OPENAI</em>
+              <p id="openai-account" style="margin:8px 0 0;font-size:0.85rem">Not connected</p>
+              <div class="row" style="margin-top:10px">
+                <a class="ghost" href="https://platform.openai.com/login" target="_blank" rel="noreferrer">Sign in</a>
+                <a class="ghost" href="https://platform.openai.com/settings/organization/billing/overview" target="_blank" rel="noreferrer">Billing</a>
+                <a class="ghost" href="https://platform.openai.com/settings/organization/admin-keys" target="_blank" rel="noreferrer">Admin keys</a>
+              </div>
+              <label><span>Account email</span><input id="openai-email" type="email" autocomplete="off" /></label>
+              <label><span>Organization admin key</span><input id="openai-key" type="password" autocomplete="new-password" /></label>
+              <label><span>Remaining $ (if key cannot read billing)</span><input id="openai-remaining" type="number" min="0" step="0.0001" /></label>
+              <label><span>Used $</span><input id="openai-used" type="number" min="0" step="0.0001" /></label>
+              <label><span>Limit $</span><input id="openai-limit" type="number" min="0" step="0.0001" /></label>
+              <div class="row">
+                <button class="primary" type="submit">Connect OpenAI</button>
+                <button class="ghost" type="button" id="openai-disconnect">Disconnect</button>
+              </div>
+            </form>
+            <form id="connect-anthropic" class="stat" style="text-align:left">
+              <em>CONNECT CLAUDE</em>
+              <p id="anthropic-account" style="margin:8px 0 0;font-size:0.85rem">Not connected</p>
+              <div class="row" style="margin-top:10px">
+                <a class="ghost" href="https://console.anthropic.com/login" target="_blank" rel="noreferrer">Sign in</a>
+                <a class="ghost" href="https://console.anthropic.com/settings/billing" target="_blank" rel="noreferrer">Billing</a>
+                <a class="ghost" href="https://console.anthropic.com/settings/admin-keys" target="_blank" rel="noreferrer">Admin keys</a>
+              </div>
+              <label><span>Account email</span><input id="anthropic-email" type="email" autocomplete="off" /></label>
+              <label><span>Admin API key (sk-ant-admin01-…)</span><input id="anthropic-key" type="password" autocomplete="new-password" /></label>
+              <label><span>Remaining $ (if key cannot read billing)</span><input id="anthropic-remaining" type="number" min="0" step="0.0001" /></label>
+              <label><span>Used $</span><input id="anthropic-used" type="number" min="0" step="0.0001" /></label>
+              <label><span>Limit $</span><input id="anthropic-limit" type="number" min="0" step="0.0001" /></label>
+              <div class="row">
+                <button class="primary" type="submit">Connect Claude</button>
+                <button class="ghost" type="button" id="anthropic-disconnect">Disconnect</button>
+              </div>
+            </form>
+          </div>
         </section>
 
         <section id="credits" class="panel hidden">
@@ -556,6 +594,10 @@
         if (n === null || n === undefined || !Number.isFinite(Number(n))) return "—";
         return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 4 }).format(Number(n));
       }
+      function accountLabel(account) {
+        if (!account || !account.connected) return "Not connected";
+        return [account.email, account.keyHint].filter(Boolean).join(" · ") || "Account connected";
+      }
       function fillApiUsage(json) {
         const providers = json.providers || [];
         const openai = providers.find((row) => row.id === "openai") || {};
@@ -565,12 +607,15 @@
           : (json.month || "—");
         document.getElementById("api-openai-left").textContent = moneyExact(openai.remainingUsd);
         document.getElementById("api-claude-left").textContent = moneyExact(claude.remainingUsd);
+        document.getElementById("openai-account").textContent = accountLabel(openai.account);
+        document.getElementById("anthropic-account").textContent = accountLabel(claude.account);
         document.getElementById("api-rows").innerHTML = providers.length
           ? providers.map((row) => {
-              const status = row.status === "finished" ? "Finished" : row.status === "low" ? "Low" : row.status === "unconfigured" ? "Not configured" : row.status === "unavailable" ? "Needs billing access" : "Available";
+              const status = row.status === "finished" ? "Finished" : row.status === "low" ? "Low" : row.status === "unconfigured" ? "Not connected" : row.status === "unavailable" ? "Needs billing access" : "Available";
               const note = row.error ? `<br><small>${row.error}</small>` : "";
+              const account = row.account && row.account.connected ? accountLabel(row.account) : "No account";
               return `<tr>
-                <td>${row.label}<br><small>${row.model || ""}</small></td>
+                <td>${row.label}<br><small>${account}</small></td>
                 <td>${status}${note}</td>
                 <td>${moneyExact(row.remainingUsd)}</td>
                 <td>${moneyExact(row.usedUsd)}</td>
@@ -579,6 +624,28 @@
               </tr>`;
             }).join("")
           : `<tr><td colspan="6">Could not load OpenAI / Claude billing yet.</td></tr>`;
+      }
+      async function connectAccount(provider, ids) {
+        const json = await api("/api/admin/api-usage", {
+          method: "PUT",
+          body: JSON.stringify({
+            action: "connect",
+            provider,
+            email: document.getElementById(ids.email).value,
+            key: document.getElementById(ids.key).value,
+            remainingUsd: document.getElementById(ids.remaining).value,
+            usedUsd: document.getElementById(ids.used).value,
+            limitUsd: document.getElementById(ids.limit).value,
+          }),
+        });
+        document.getElementById(ids.key).value = "";
+        fillApiUsage(json);
+      }
+      async function disconnectAccount(provider) {
+        fillApiUsage(await api("/api/admin/api-usage", {
+          method: "PUT",
+          body: JSON.stringify({ action: "disconnect", provider }),
+        }));
       }
       function fillUsers(json) {
         const users = json.users || [];
@@ -718,7 +785,53 @@
       document.getElementById("api-sync").onclick = async () => {
         try {
           fillApiUsage(await api("/api/admin/api-usage", { method: "POST" }));
-          show("Synced exact remaining usage from OpenAI and Claude.", "ok");
+          show("Synced remaining usage from the connected OpenAI and Claude accounts.", "ok");
+        } catch (err) {
+          show(err.message, "err");
+        }
+      };
+      document.getElementById("connect-openai").onsubmit = async (e) => {
+        e.preventDefault();
+        try {
+          await connectAccount("openai", {
+            email: "openai-email",
+            key: "openai-key",
+            remaining: "openai-remaining",
+            used: "openai-used",
+            limit: "openai-limit",
+          });
+          show("OpenAI account connected.", "ok");
+        } catch (err) {
+          show(err.message, "err");
+        }
+      };
+      document.getElementById("connect-anthropic").onsubmit = async (e) => {
+        e.preventDefault();
+        try {
+          await connectAccount("anthropic", {
+            email: "anthropic-email",
+            key: "anthropic-key",
+            remaining: "anthropic-remaining",
+            used: "anthropic-used",
+            limit: "anthropic-limit",
+          });
+          show("Claude account connected.", "ok");
+        } catch (err) {
+          show(err.message, "err");
+        }
+      };
+      document.getElementById("openai-disconnect").onclick = async () => {
+        try {
+          await disconnectAccount("openai");
+          show("OpenAI account disconnected.", "ok");
+        } catch (err) {
+          show(err.message, "err");
+        }
+      };
+      document.getElementById("anthropic-disconnect").onclick = async () => {
+        try {
+          await disconnectAccount("anthropic");
+          show("Claude account disconnected.", "ok");
         } catch (err) {
           show(err.message, "err");
         }

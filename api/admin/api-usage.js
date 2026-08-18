@@ -11,6 +11,18 @@ module.exports = async function handler(req, res) {
     return res.status(401).json({ ok: false, error: auth.error });
   }
 
+  if (req.method === "PUT") {
+    const body = req.body && typeof req.body === "object" ? req.body : {};
+    const action = typeof body.action === "string" ? body.action : "";
+    if (action === "connect" || action === "disconnect") {
+      const result = await optisyncFetch("/api/automation/admin/api-usage", {
+        method: "PUT",
+        body: JSON.stringify(body),
+      });
+      return res.status(result.status || 502).json(result.data);
+    }
+  }
+
   if (req.method === "GET" || req.method === "POST" || req.method === "PUT") {
     const method = req.method === "GET" ? "GET" : "POST";
     let result = await optisyncFetch("/api/automation/admin/api-usage", { method });
