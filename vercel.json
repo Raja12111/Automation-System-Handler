@@ -2,7 +2,8 @@
   "framework": null,
   "rewrites": [
     { "source": "/health", "destination": "/api/health" },
-    { "source": "/admin", "destination": "/admin.html" }
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/api/admin/page-status", "destination": "/api/admin/api-usage?resource=page-status" }
   ],
   "headers": [
     {
