@@ -134,6 +134,21 @@
       .badge.muted { background: #eef1f0; color: var(--muted); }
       .badge.warn { background: #fff4e5; color: #b54708; }
       .badge.soon { background: #eef4ff; color: #175cd3; }
+      .pd-search { display: flex; gap: 8px; align-items: end; flex: 1; min-width: 16rem; }
+      .pd-search input { margin-top: 8px; }
+      .pd-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+      .pd-tabs button {
+        border-radius: 999px;
+        background: #fff;
+        color: var(--ink);
+        border: 1px solid var(--line);
+        padding: 8px 12px;
+      }
+      .pd-tabs button.active {
+        background: var(--brand-soft);
+        color: var(--brand-dark);
+        border-color: transparent;
+      }
       .hidden { display: none !important; }
       .check { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
       .check input { width: auto; margin: 0; }
@@ -368,21 +383,22 @@
             <div class="stat"><em>COMING SOON</em><b id="pd-soon">—</b></div>
           </div>
           <div class="row">
+            <label class="pd-search">
+              <span>Search page or tool</span>
+              <input id="pd-search" type="search" placeholder="Meta Tags, PageSpeed, Cloud Stack…" />
+            </label>
+            <button class="primary" type="button" id="pd-search-btn" style="align-self:end">Search</button>
             <label style="margin:0;min-width:12rem">
-              <span>Filter</span>
+              <span>Status filter</span>
               <select id="pd-filter">
-                <option value="all">All pages</option>
+                <option value="all">All statuses</option>
                 <option value="live">Live only</option>
                 <option value="down">Down / maintenance</option>
                 <option value="coming_soon">Coming Soon</option>
               </select>
             </label>
-            <label style="margin:0;min-width:12rem">
-              <span>Group</span>
-              <select id="pd-group"></select>
-            </label>
             <label style="margin:0;min-width:16rem">
-              <span>Set whole group to</span>
+              <span>Set this tab to</span>
               <select id="pd-group-status">
                 <option value="live">Live</option>
                 <option value="page_maintenance">Page is Under Maintenance</option>
@@ -390,8 +406,9 @@
                 <option value="coming_soon">Coming Soon</option>
               </select>
             </label>
-            <button class="primary" type="button" id="pd-group-apply" style="align-self:end">Apply to group</button>
+            <button class="primary" type="button" id="pd-group-apply" style="align-self:end">Apply to this tab</button>
           </div>
+          <div id="pd-tabs" class="pd-tabs"></div>
           <table>
             <thead>
               <tr>
@@ -499,6 +516,8 @@
       const passwordInput = document.getElementById("password");
       let defaults = null;
       let pageDownData = { pages: [], groups: [] };
+      let pageDownTab = "all";
+      let pageDownQuery = "";
 
       function show(msg, kind, target) {
         const el = target || flash;
@@ -718,28 +737,39 @@
           ["coming_soon", "Coming Soon"],
         ].map(([value, label]) => `<option value="${value}"${value === selected ? " selected" : ""}>${label}</option>`).join("");
       }
+      function pageDownGroups() {
+        const pages = pageDownData.pages || [];
+        return pageDownData.groups && pageDownData.groups.length
+          ? pageDownData.groups
+          : [...new Set(pages.map((row) => row.group))];
+      }
+      function renderPageDownTabs() {
+        const groups = pageDownGroups();
+        if (pageDownTab !== "all" && !groups.includes(pageDownTab)) pageDownTab = "all";
+        document.getElementById("pd-tabs").innerHTML = ["all", ...groups].map((group) => {
+          const label = group === "all" ? "All tabs" : group;
+          return `<button type="button" data-pd-tab="${group}" class="${group === pageDownTab ? "active" : ""}">${label}</button>`;
+        }).join("");
+      }
       function fillPageDown(json) {
-        pageDownData = json || { pages: [], groups: [] };
+        if (json && (json.pages || json.groups)) pageDownData = json;
         const pages = pageDownData.pages || [];
         const filter = document.getElementById("pd-filter").value;
+        const query = pageDownQuery.trim().toLowerCase();
         const live = pages.filter((row) => row.status === "live").length;
         const soon = pages.filter((row) => row.status === "coming_soon").length;
         const down = pages.length - live - soon;
         document.getElementById("pd-live").textContent = fmt(live);
         document.getElementById("pd-down").textContent = fmt(down);
         document.getElementById("pd-soon").textContent = fmt(soon);
-        const groupSel = document.getElementById("pd-group");
-        const currentGroup = groupSel.value;
-        const groups = pageDownData.groups && pageDownData.groups.length
-          ? pageDownData.groups
-          : [...new Set(pages.map((row) => row.group))];
-        groupSel.innerHTML = groups.map((group) => `<option value="${group}">${group}</option>`).join("");
-        if (currentGroup && groups.includes(currentGroup)) groupSel.value = currentGroup;
+        renderPageDownTabs();
         const visible = pages.filter((row) => {
-          if (filter === "live") return row.status === "live";
-          if (filter === "coming_soon") return row.status === "coming_soon";
-          if (filter === "down") return row.status === "page_maintenance" || row.status === "tool_maintenance";
-          return true;
+          if (pageDownTab !== "all" && row.group !== pageDownTab) return false;
+          if (filter === "live" && row.status !== "live") return false;
+          if (filter === "coming_soon" && row.status !== "coming_soon") return false;
+          if (filter === "down" && row.status !== "page_maintenance" && row.status !== "tool_maintenance") return false;
+          if (!query) return true;
+          return [row.label, row.path, row.group, row.id].some((value) => String(value || "").toLowerCase().includes(query));
         });
         document.getElementById("pd-rows").innerHTML = visible.length
           ? visible.map((row) => `<tr>
@@ -753,7 +783,7 @@
                 </div>
               </td>
             </tr>`).join("")
-          : `<tr><td colspan="4">No pages match this filter.</td></tr>`;
+          : `<tr><td colspan="4">No pages match this search or tab.</td></tr>`;
       }
       function fillUsers(json) {
         const users = json.users || [];
@@ -953,17 +983,37 @@
         }
       };
 
+      function runPageDownSearch() {
+        pageDownQuery = document.getElementById("pd-search").value;
+        fillPageDown(pageDownData);
+      }
       document.getElementById("pd-filter").onchange = () => fillPageDown(pageDownData);
+      document.getElementById("pd-search-btn").onclick = runPageDownSearch;
+      document.getElementById("pd-search").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          runPageDownSearch();
+        }
+      });
+      document.getElementById("pd-tabs").addEventListener("click", (e) => {
+        const btn = e.target.closest("button[data-pd-tab]");
+        if (!btn) return;
+        pageDownTab = btn.dataset.pdTab;
+        fillPageDown(pageDownData);
+      });
       document.getElementById("pd-group-apply").onclick = async () => {
+        const status = document.getElementById("pd-group-status").value;
+        const groups = pageDownTab === "all" ? pageDownGroups() : [pageDownTab];
         try {
-          fillPageDown(await api("/api/admin/page-status", {
-            method: "PUT",
-            body: JSON.stringify({
-              group: document.getElementById("pd-group").value,
-              status: document.getElementById("pd-group-status").value,
-            }),
-          }));
-          show("Updated the whole group.", "ok");
+          let latest = pageDownData;
+          for (const group of groups) {
+            latest = await api("/api/admin/page-status", {
+              method: "PUT",
+              body: JSON.stringify({ group, status }),
+            });
+          }
+          fillPageDown(latest);
+          show(pageDownTab === "all" ? "Applied to every tab." : "Applied to this tab.", "ok");
         } catch (err) {
           show(err.message, "err");
         }
