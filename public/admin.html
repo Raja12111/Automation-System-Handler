@@ -131,6 +131,8 @@
         color: var(--brand-dark);
       }
       .badge.muted { background: #eef1f0; color: var(--muted); }
+      .badge.warn { background: #fff4e5; color: #b54708; }
+      .badge.soon { background: #eef4ff; color: #175cd3; }
       .hidden { display: none !important; }
       .check { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
       .check input { width: auto; margin: 0; }
@@ -177,6 +179,7 @@
           <button type="button" data-tab="subscriptions">Subscriptions</button>
           <button type="button" data-tab="prompts">Meta tag prompts</button>
           <button type="button" data-tab="api">API</button>
+          <button type="button" data-tab="page-down">Page Down</button>
           <button type="button" data-tab="credits">Credits</button>
         </nav>
         <p style="margin-top:24px;font-size:0.8rem"><a href="/">Handler home</a></p>
@@ -354,6 +357,53 @@
           </div>
         </section>
 
+        <section id="page-down" class="panel hidden">
+          <div class="ok">PAGE DOWN</div>
+          <h1>Page Down</h1>
+          <p>If a page or tool is not working, set it to under maintenance or Coming Soon. Users see that screen instead of the broken page. Set it back to Live when it is ready.</p>
+          <div class="stats" style="margin-top:16px">
+            <div class="stat"><em>LIVE</em><b id="pd-live">—</b></div>
+            <div class="stat"><em>DOWN</em><b id="pd-down">—</b></div>
+            <div class="stat"><em>COMING SOON</em><b id="pd-soon">—</b></div>
+          </div>
+          <div class="row">
+            <label style="margin:0;min-width:12rem">
+              <span>Filter</span>
+              <select id="pd-filter">
+                <option value="all">All pages</option>
+                <option value="live">Live only</option>
+                <option value="down">Down / maintenance</option>
+                <option value="coming_soon">Coming Soon</option>
+              </select>
+            </label>
+            <label style="margin:0;min-width:12rem">
+              <span>Group</span>
+              <select id="pd-group"></select>
+            </label>
+            <label style="margin:0;min-width:16rem">
+              <span>Set whole group to</span>
+              <select id="pd-group-status">
+                <option value="live">Live</option>
+                <option value="page_maintenance">Page is Under Maintenance</option>
+                <option value="tool_maintenance">Tool is under maintenance</option>
+                <option value="coming_soon">Coming Soon</option>
+              </select>
+            </label>
+            <button class="primary" type="button" id="pd-group-apply" style="align-self:end">Apply to group</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Page / tool</th>
+                <th>Group</th>
+                <th>Status</th>
+                <th>Set to</th>
+              </tr>
+            </thead>
+            <tbody id="pd-rows"></tbody>
+          </table>
+        </section>
+
         <section id="credits" class="panel hidden">
           <div class="ok">CREDITS</div>
           <h1>Credit stats</h1>
@@ -447,6 +497,7 @@
       const emailInput = document.getElementById("email");
       const passwordInput = document.getElementById("password");
       let defaults = null;
+      let pageDownData = { pages: [], groups: [] };
 
       function show(msg, kind, target) {
         const el = target || flash;
@@ -476,7 +527,7 @@
       }
       function setTab(tab) {
         document.querySelectorAll(".nav button").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
-        ["users", "new-user", "subscriptions", "prompts", "api", "credits"].forEach((id) => {
+        ["users", "new-user", "subscriptions", "prompts", "api", "page-down", "credits"].forEach((id) => {
           document.getElementById(id).classList.toggle("hidden", id !== tab);
         });
       }
@@ -647,6 +698,62 @@
           body: JSON.stringify({ action: "disconnect", provider }),
         }));
       }
+      function statusLabel(status) {
+        if (status === "page_maintenance") return "Page is Under Maintenance";
+        if (status === "tool_maintenance") return "Tool is under maintenance";
+        if (status === "coming_soon") return "Coming Soon";
+        return "Live";
+      }
+      function statusBadge(status) {
+        if (status === "page_maintenance" || status === "tool_maintenance") return `<span class="badge warn">${statusLabel(status)}</span>`;
+        if (status === "coming_soon") return `<span class="badge soon">Coming Soon</span>`;
+        return `<span class="badge">Live</span>`;
+      }
+      function statusOptions(selected) {
+        return [
+          ["live", "Live"],
+          ["page_maintenance", "Page is Under Maintenance"],
+          ["tool_maintenance", "Tool is under maintenance"],
+          ["coming_soon", "Coming Soon"],
+        ].map(([value, label]) => `<option value="${value}"${value === selected ? " selected" : ""}>${label}</option>`).join("");
+      }
+      function fillPageDown(json) {
+        pageDownData = json || { pages: [], groups: [] };
+        const pages = pageDownData.pages || [];
+        const filter = document.getElementById("pd-filter").value;
+        const live = pages.filter((row) => row.status === "live").length;
+        const soon = pages.filter((row) => row.status === "coming_soon").length;
+        const down = pages.length - live - soon;
+        document.getElementById("pd-live").textContent = fmt(live);
+        document.getElementById("pd-down").textContent = fmt(down);
+        document.getElementById("pd-soon").textContent = fmt(soon);
+        const groupSel = document.getElementById("pd-group");
+        const currentGroup = groupSel.value;
+        const groups = pageDownData.groups && pageDownData.groups.length
+          ? pageDownData.groups
+          : [...new Set(pages.map((row) => row.group))];
+        groupSel.innerHTML = groups.map((group) => `<option value="${group}">${group}</option>`).join("");
+        if (currentGroup && groups.includes(currentGroup)) groupSel.value = currentGroup;
+        const visible = pages.filter((row) => {
+          if (filter === "live") return row.status === "live";
+          if (filter === "coming_soon") return row.status === "coming_soon";
+          if (filter === "down") return row.status === "page_maintenance" || row.status === "tool_maintenance";
+          return true;
+        });
+        document.getElementById("pd-rows").innerHTML = visible.length
+          ? visible.map((row) => `<tr>
+              <td>${row.label}<br><small>${row.path} · ${row.kind}</small></td>
+              <td>${row.group}</td>
+              <td>${statusBadge(row.status)}</td>
+              <td>
+                <div class="row" style="margin:0">
+                  <select data-pd-id="${row.id}">${statusOptions(row.status)}</select>
+                  <button class="primary" type="button" data-pd-apply="${row.id}">Apply</button>
+                </div>
+              </td>
+            </tr>`).join("")
+          : `<tr><td colspan="4">No pages match this filter.</td></tr>`;
+      }
       function fillUsers(json) {
         const users = json.users || [];
         document.getElementById("u-total").textContent = fmt(json.total || users.length);
@@ -708,6 +815,7 @@
             if (tab === "subscriptions") fillSubscriptions(await api("/api/admin/subscriptions"));
             if (tab === "prompts") fillPrompts(await api("/api/admin/prompts"));
             if (tab === "api") fillApiUsage(await api("/api/admin/api-usage"));
+            if (tab === "page-down") fillPageDown(await api("/api/admin/page-status"));
             if (tab === "credits") {
               fillCredits(await api("/api/admin/credits"));
               fillSuperCredits(await api("/api/admin/super-credits"));
@@ -836,6 +944,39 @@
           show(err.message, "err");
         }
       };
+
+      document.getElementById("pd-filter").onchange = () => fillPageDown(pageDownData);
+      document.getElementById("pd-group-apply").onclick = async () => {
+        try {
+          fillPageDown(await api("/api/admin/page-status", {
+            method: "PUT",
+            body: JSON.stringify({
+              group: document.getElementById("pd-group").value,
+              status: document.getElementById("pd-group-status").value,
+            }),
+          }));
+          show("Updated the whole group.", "ok");
+        } catch (err) {
+          show(err.message, "err");
+        }
+      };
+      document.getElementById("pd-rows").addEventListener("click", async (e) => {
+        const btn = e.target.closest("button[data-pd-apply]");
+        if (!btn) return;
+        const select = document.querySelector(`select[data-pd-id="${btn.dataset.pdApply}"]`);
+        try {
+          fillPageDown(await api("/api/admin/page-status", {
+            method: "PUT",
+            body: JSON.stringify({
+              id: btn.dataset.pdApply,
+              status: select ? select.value : "live",
+            }),
+          }));
+          show("Page status saved.", "ok");
+        } catch (err) {
+          show(err.message, "err");
+        }
+      });
 
       document.getElementById("grant").onsubmit = async (e) => {
         e.preventDefault();
