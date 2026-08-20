@@ -1,5 +1,6 @@
 const { requireAdminAccess } = require("../../lib/admin-session");
 const { optisyncFetch } = require("../../lib/optisync");
+const { fallbackPageStatuses } = require("../../lib/page-catalog");
 
 module.exports = async function handler(req, res) {
   if (req.method === "OPTIONS") {
@@ -15,7 +16,14 @@ module.exports = async function handler(req, res) {
     const result = await optisyncFetch("/api/automation/admin/page-status", {
       method: "GET",
     });
-    return res.status(result.status || 502).json(result.data);
+    if (result.ok && Array.isArray(result.data && result.data.pages) && result.data.pages.length) {
+      return res.status(200).json(result.data);
+    }
+    const fallback = fallbackPageStatuses();
+    fallback.error =
+      (result.data && result.data.error) ||
+      "Showing the RankBrain X page list. Live status will sync when RankBrain X answers.";
+    return res.status(200).json(fallback);
   }
 
   if (req.method === "PUT") {
@@ -23,7 +31,14 @@ module.exports = async function handler(req, res) {
       method: "PUT",
       body: JSON.stringify(req.body || {}),
     });
-    return res.status(result.status || 502).json(result.data);
+    if (result.ok && Array.isArray(result.data && result.data.pages)) {
+      return res.status(result.status || 200).json(result.data);
+    }
+    return res.status(result.status || 502).json({
+      error:
+        (result.data && result.data.error) ||
+        "Could not save page status on RankBrain X.",
+    });
   }
 
   return res.status(405).json({ ok: false, error: "Method not allowed" });

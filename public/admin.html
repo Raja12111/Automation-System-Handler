@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Admin — OptiSync Handler</title>
+    <meta http-equiv="Cache-Control" content="no-store" />
     <style>
       :root {
         --brand: #05cc47;
@@ -175,11 +176,11 @@
         </div>
         <nav class="nav" aria-label="Admin">
           <button type="button" class="active" data-tab="users">All users</button>
+          <button type="button" data-tab="page-down">Page Down</button>
           <button type="button" data-tab="new-user">New user</button>
           <button type="button" data-tab="subscriptions">Subscriptions</button>
           <button type="button" data-tab="prompts">Meta tag prompts</button>
           <button type="button" data-tab="api">API</button>
-          <button type="button" data-tab="page-down">Page Down</button>
           <button type="button" data-tab="credits">Credits</button>
         </nav>
         <p style="margin-top:24px;font-size:0.8rem"><a href="/">Handler home</a></p>
@@ -400,7 +401,7 @@
                 <th>Set to</th>
               </tr>
             </thead>
-            <tbody id="pd-rows"></tbody>
+            <tbody id="pd-rows"><tr><td colspan="4">Loading RankBrain X pages…</td></tr></tbody>
           </table>
         </section>
 
@@ -815,7 +816,14 @@
             if (tab === "subscriptions") fillSubscriptions(await api("/api/admin/subscriptions"));
             if (tab === "prompts") fillPrompts(await api("/api/admin/prompts"));
             if (tab === "api") fillApiUsage(await api("/api/admin/api-usage"));
-            if (tab === "page-down") fillPageDown(await api("/api/admin/page-status"));
+            if (tab === "page-down") {
+              try {
+                fillPageDown(await api("/api/admin/page-status"));
+              } catch (err) {
+                fillPageDown({ pages: [], groups: [] });
+                throw err;
+              }
+            }
             if (tab === "credits") {
               fillCredits(await api("/api/admin/credits"));
               fillSuperCredits(await api("/api/admin/super-credits"));
