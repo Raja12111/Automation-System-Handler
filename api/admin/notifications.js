@@ -1,5 +1,5 @@
-const { requireAdminAccess } = require("../../../lib/admin-session");
-const { optisyncFetch } = require("../../../lib/optisync");
+const { requireAdminAccess } = require("../../lib/admin-session");
+const { optisyncFetch } = require("../../lib/optisync");
 
 module.exports = async function handler(req, res) {
   if (req.method === "OPTIONS") {
@@ -11,20 +11,15 @@ module.exports = async function handler(req, res) {
     return res.status(401).json({ ok: false, error: auth.error });
   }
 
-  const id = encodeURIComponent(String(req.query.id || "").trim());
-  if (!id) {
-    return res.status(400).json({ ok: false, error: "Ticket id is required." });
-  }
-
   if (req.method === "GET") {
-    const result = await optisyncFetch(`/api/automation/admin/tickets/${id}`, {
+    const result = await optisyncFetch("/api/automation/admin/notifications", {
       method: "GET",
     });
     return res.status(result.status || 502).json(result.data);
   }
 
   if (req.method === "POST") {
-    const result = await optisyncFetch(`/api/automation/admin/tickets/${id}`, {
+    const result = await optisyncFetch("/api/automation/admin/notifications", {
       method: "POST",
       body: JSON.stringify(req.body || {}),
     });

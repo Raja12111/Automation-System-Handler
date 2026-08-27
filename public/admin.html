@@ -71,6 +71,57 @@
       .primary:hover { background: var(--brand-hover); }
       .ghost { background: #fff; color: var(--ink); border: 1px solid var(--line); }
       .layout { display: flex; min-height: 100vh; }
+      .admin-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+      .note-bar {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin: 16px 28px 0;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: #fff8eb;
+        border: 1px solid #f5d9a8;
+        color: #8a5a00;
+      }
+      .note-bar.is-error {
+        background: #fef3f2;
+        border-color: #fecdca;
+        color: var(--danger);
+      }
+      .note-bar-mark {
+        width: 22px;
+        height: 22px;
+        border-radius: 99px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        background: #b54708;
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 800;
+      }
+      .note-bar.is-error .note-bar-mark { background: var(--danger); }
+      .note-bar-copy { margin: 0; flex: 1; min-width: 0; }
+      .note-bar-copy strong { display: block; color: #3f3f3f; }
+      .note-bar-copy small { display: block; margin-top: 2px; color: var(--muted); }
+      .note-bar button { padding: 7px 12px; font-size: 0.8rem; }
+      .note-list {
+        margin: 8px 28px 0;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 8px;
+      }
+      .note-list article {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 10px;
+        border-bottom: 1px solid var(--line);
+      }
+      .note-list article:last-child { border-bottom: 0; }
+      .note-list p { margin: 0; }
+      .note-list small { color: var(--muted); }
       .sidebar {
         width: 240px;
         flex-shrink: 0;
@@ -134,6 +185,7 @@
       .badge.muted { background: #eef1f0; color: var(--muted); }
       .badge.warn { background: #fff4e5; color: #b54708; }
       .badge.soon { background: #eef4ff; color: #175cd3; }
+      .badge.closed { background: #eef1f0; color: var(--muted); }
       .pd-search { display: flex; gap: 8px; align-items: end; flex: 1; min-width: 16rem; }
       .pd-search input { margin-top: 8px; }
       .pd-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
@@ -149,6 +201,18 @@
         color: var(--brand-dark);
         border-color: transparent;
       }
+      tr.clickable { cursor: pointer; }
+      tr.clickable:hover { background: #f8faf9; }
+      tr.selected { background: var(--brand-soft); }
+      .thread { margin-top: 16px; display: grid; gap: 10px; }
+      .update {
+        background: #f8faf9;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px 14px;
+      }
+      .update .meta { color: var(--muted); font-size: 0.75rem; margin-bottom: 6px; }
+      .update p { margin: 0; color: var(--ink); white-space: pre-wrap; }
       .hidden { display: none !important; }
       .check { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
       .check input { width: auto; margin: 0; }
@@ -194,13 +258,17 @@
           <button type="button" data-tab="page-down">Page Down</button>
           <button type="button" data-tab="new-user">New user</button>
           <button type="button" data-tab="subscriptions">Subscriptions</button>
+          <button type="button" data-tab="tickets">Ticket Updates</button>
           <button type="button" data-tab="prompts">Meta tag prompts</button>
           <button type="button" data-tab="api">API</button>
           <button type="button" data-tab="credits">Credits</button>
         </nav>
         <p style="margin-top:24px;font-size:0.8rem"><a href="/">Handler home</a></p>
       </aside>
-      <main class="main">
+      <div class="admin-col">
+        <div id="note-bar" class="note-bar hidden" role="status"></div>
+        <div id="note-list" class="note-list hidden"></div>
+        <main class="main">
         <div id="flash"></div>
 
         <section id="users" class="panel">
@@ -282,6 +350,44 @@
             </thead>
             <tbody id="sub-rows"></tbody>
           </table>
+        </section>
+
+        <section id="tickets" class="panel hidden">
+          <div class="ok">SUPPORT</div>
+          <h1>Ticket Updates</h1>
+          <p>Open and recent OptiSync tickets. Select a ticket to read the thread and post an update.</p>
+          <div class="stats" style="margin-top:16px">
+            <div class="stat"><em>OPEN</em><b id="t-open">—</b></div>
+            <div class="stat"><em>TOTAL</em><b id="t-total">—</b></div>
+            <div class="stat"><em>WITH UPDATES</em><b id="t-comments">—</b></div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Ticket</th>
+                <th>Website</th>
+                <th>Status</th>
+                <th>Latest update</th>
+              </tr>
+            </thead>
+            <tbody id="ticket-rows"></tbody>
+          </table>
+          <div id="ticket-detail" class="hidden" style="margin-top:24px;padding-top:20px;border-top:1px solid var(--line)">
+            <div class="ok">THREAD</div>
+            <h2 id="ticket-title" style="margin:6px 0 8px;font-size:1.15rem;color:#3f3f3f"></h2>
+            <p id="ticket-meta" style="margin:0 0 12px"></p>
+            <p id="ticket-description" style="white-space:pre-wrap"></p>
+            <div id="ticket-thread" class="thread"></div>
+            <form id="ticket-update" style="margin-top:16px">
+              <label>
+                <span>Post an update</span>
+                <textarea id="ticket-body" rows="4" maxlength="4000" placeholder="Add a comment that the website team will see on this ticket."></textarea>
+              </label>
+              <div class="row">
+                <button class="primary" type="submit">Post update</button>
+              </div>
+            </form>
+          </div>
         </section>
 
         <section id="prompts" class="panel hidden">
@@ -505,6 +611,7 @@
           </form>
         </section>
       </main>
+      </div>
     </div>
 
     <script>
@@ -518,6 +625,9 @@
       let pageDownData = { pages: [], groups: [] };
       let pageDownTab = "all";
       let pageDownQuery = "";
+      let noteItems = [];
+      let notesOpen = false;
+      let noteTimer = null;
 
       function show(msg, kind, target) {
         const el = target || flash;
@@ -547,8 +657,57 @@
       }
       function setTab(tab) {
         document.querySelectorAll(".nav button").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
-        ["users", "new-user", "subscriptions", "prompts", "api", "page-down", "credits"].forEach((id) => {
+        ["users", "new-user", "subscriptions", "tickets", "prompts", "api", "page-down", "credits"].forEach((id) => {
           document.getElementById(id).classList.toggle("hidden", id !== tab);
+        });
+      }
+      function esc(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+      let selectedTicketId = "";
+      function fillTickets(json) {
+        const tickets = json.tickets || [];
+        document.getElementById("t-open").textContent = fmt(json.openCount);
+        document.getElementById("t-total").textContent = fmt(json.total || tickets.length);
+        document.getElementById("t-comments").textContent = fmt(tickets.filter((row) => row.commentCount > 0).length);
+        document.getElementById("ticket-rows").innerHTML = tickets.length
+          ? tickets.map((ticket) => {
+              const latest = ticket.latestUpdate
+                ? `${esc(ticket.latestUpdate.author)} · ${new Date(ticket.latestUpdate.createdAt).toLocaleString()}<br><small>${esc(ticket.latestUpdate.body).slice(0, 120)}</small>`
+                : "No updates yet";
+              const status = ticket.status === "OPEN"
+                ? '<span class="badge">Open</span>'
+                : '<span class="badge closed">Closed</span>';
+              const selected = ticket.id === selectedTicketId ? " selected" : "";
+              return `<tr class="clickable${selected}" data-ticket="${esc(ticket.id)}">
+                <td>${esc(ticket.title)}<br><small>${esc(ticket.priority)} · ${esc(ticket.createdBy)}</small></td>
+                <td>${esc(ticket.website)}<br><small>${esc(ticket.companyName || "—")}</small></td>
+                <td>${status}</td>
+                <td>${latest}</td>
+              </tr>`;
+            }).join("")
+          : `<tr><td colspan="4">No tickets yet.</td></tr>`;
+      }
+      function fillTicketDetail(ticket) {
+        selectedTicketId = ticket.id;
+        document.getElementById("ticket-detail").classList.remove("hidden");
+        document.getElementById("ticket-title").textContent = ticket.title;
+        document.getElementById("ticket-meta").textContent =
+          `${ticket.website} · ${ticket.status} · ${ticket.priority} · opened by ${ticket.createdBy}`;
+        document.getElementById("ticket-description").textContent = ticket.description || "";
+        const updates = ticket.updates || [];
+        document.getElementById("ticket-thread").innerHTML = updates.length
+          ? updates.map((item) => `<div class="update">
+              <div class="meta">${esc(item.author)} · ${new Date(item.createdAt).toLocaleString()}</div>
+              <p>${esc(item.body)}</p>
+            </div>`).join("")
+          : `<p>No updates yet. Post the first comment below.</p>`;
+        document.querySelectorAll("#ticket-rows tr[data-ticket]").forEach((row) => {
+          row.classList.toggle("selected", row.dataset.ticket === ticket.id);
         });
       }
       function fillPrompts(json) {
@@ -785,6 +944,60 @@
             </tr>`).join("")
           : `<tr><td colspan="4">No pages match this search or tab.</td></tr>`;
       }
+      function renderNotes() {
+        const bar = document.getElementById("note-bar");
+        const list = document.getElementById("note-list");
+        const latest = noteItems[0];
+        if (!latest) {
+          bar.classList.add("hidden");
+          list.classList.add("hidden");
+          notesOpen = false;
+          bar.innerHTML = "";
+          list.innerHTML = "";
+          return;
+        }
+        const extra = Math.max(0, noteItems.length - 1);
+        bar.classList.remove("hidden");
+        bar.classList.toggle("is-error", latest.severity === "ERROR");
+        bar.innerHTML = `
+          <span class="note-bar-mark">!</span>
+          <p class="note-bar-copy">
+            <strong>${esc(latest.title)}</strong>
+            <span>${esc(latest.body)}</span>
+            <small>${esc(latest.website)}${latest.companyName ? " · " + esc(latest.companyName) : ""} · ${new Date(latest.createdAt).toLocaleString()}</small>
+          </p>
+          <button class="ghost" type="button" data-note-dismiss="${esc(latest.id)}">Dismiss</button>
+          ${extra ? `<button class="primary" type="button" id="note-more">${notesOpen ? "Hide" : "+" + extra + " more"}</button>` : ""}
+        `;
+        if (!notesOpen || extra === 0) {
+          list.classList.add("hidden");
+          list.innerHTML = "";
+          return;
+        }
+        list.classList.remove("hidden");
+        list.innerHTML = noteItems.slice(1).map((item) => `
+          <article>
+            <div style="flex:1">
+              <p><strong>${esc(item.title)}</strong></p>
+              <p>${esc(item.body)}</p>
+              <small>${esc(item.website)} · ${new Date(item.createdAt).toLocaleString()}</small>
+            </div>
+            <button class="ghost" type="button" data-note-dismiss="${esc(item.id)}">Dismiss</button>
+          </article>
+        `).join("");
+      }
+      async function loadNotes() {
+        const json = await api("/api/admin/notifications");
+        noteItems = json.notifications || [];
+        renderNotes();
+      }
+      function startNotePolling() {
+        if (noteTimer) window.clearInterval(noteTimer);
+        void loadNotes().catch(() => {});
+        noteTimer = window.setInterval(() => {
+          void loadNotes().catch(() => {});
+        }, 30000);
+      }
       function fillUsers(json) {
         const users = json.users || [];
         document.getElementById("u-total").textContent = fmt(json.total || users.length);
@@ -825,6 +1038,7 @@
           fillUsers(await api("/api/admin/users"));
           openApp();
           setTab("users");
+          startNotePolling();
           show("Signed in as " + (data.user && data.user.email ? data.user.email : "admin") + ".", "ok");
           showLinkStatus();
         } catch (e) {
@@ -844,6 +1058,7 @@
           try {
             if (tab === "users") fillUsers(await api("/api/admin/users"));
             if (tab === "subscriptions") fillSubscriptions(await api("/api/admin/subscriptions"));
+            if (tab === "tickets") fillTickets(await api("/api/admin/tickets"));
             if (tab === "prompts") fillPrompts(await api("/api/admin/prompts"));
             if (tab === "api") fillApiUsage(await api("/api/admin/api-usage"));
             if (tab === "page-down") {
@@ -863,6 +1078,62 @@
           }
         };
       });
+
+      document.querySelector(".admin-col").addEventListener("click", async (e) => {
+        if (e.target.id === "note-more") {
+          notesOpen = !notesOpen;
+          renderNotes();
+          return;
+        }
+        const btn = e.target.closest("[data-note-dismiss]");
+        if (!btn) return;
+        try {
+          const json = await api("/api/admin/notifications", {
+            method: "POST",
+            body: JSON.stringify({ action: "dismiss", id: btn.dataset.noteDismiss }),
+          });
+          noteItems = json.notifications || [];
+          renderNotes();
+        } catch (err) {
+          show(err.message, "err");
+        }
+      });
+
+      document.getElementById("ticket-rows").addEventListener("click", async (e) => {
+        const row = e.target.closest("tr[data-ticket]");
+        if (!row) return;
+        try {
+          const json = await api("/api/admin/tickets/" + row.dataset.ticket);
+          fillTicketDetail(json.ticket);
+        } catch (err) {
+          show(err.message, "err");
+        }
+      });
+
+      document.getElementById("ticket-update").onsubmit = async (e) => {
+        e.preventDefault();
+        if (!selectedTicketId) {
+          show("Select a ticket first.", "err");
+          return;
+        }
+        const body = document.getElementById("ticket-body").value.trim();
+        if (!body) {
+          show("Enter an update before posting.", "err");
+          return;
+        }
+        try {
+          const json = await api("/api/admin/tickets/" + selectedTicketId, {
+            method: "POST",
+            body: JSON.stringify({ body }),
+          });
+          document.getElementById("ticket-body").value = "";
+          fillTicketDetail(json.ticket);
+          fillTickets(await api("/api/admin/tickets"));
+          show("Ticket update posted.", "ok");
+        } catch (err) {
+          show(err.message, "err");
+        }
+      };
 
       document.getElementById("sub-rows").addEventListener("click", async (e) => {
         const btn = e.target.closest("button[data-sub]");
@@ -1075,11 +1346,12 @@
       if (sessionStorage.getItem("adminToken")) {
         api("/api/admin/users")
           .then((json) => {
-          fillUsers(json);
-          openApp();
-          setTab("users");
-          showLinkStatus();
-        })
+            fillUsers(json);
+            openApp();
+            setTab("users");
+            showLinkStatus();
+            startNotePolling();
+          })
           .catch(() => sessionStorage.removeItem("adminToken"));
       }
     </script>
