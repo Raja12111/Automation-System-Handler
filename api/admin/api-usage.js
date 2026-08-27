@@ -35,6 +35,50 @@ async function handlePageStatus(req, res) {
   return res.status(405).json({ ok: false, error: "Method not allowed" });
 }
 
+async function handleNotifications(req, res) {
+  if (req.method === "GET") {
+    const result = await optisyncFetch("/api/automation/admin/notifications", {
+      method: "GET",
+    });
+    return res.status(result.status || 502).json(result.data);
+  }
+
+  if (req.method === "POST") {
+    const result = await optisyncFetch("/api/automation/admin/notifications", {
+      method: "POST",
+      body: JSON.stringify(req.body || {}),
+    });
+    return res.status(result.status || 502).json(result.data);
+  }
+
+  return res.status(405).json({ ok: false, error: "Method not allowed" });
+}
+
+async function handleTickets(req, res) {
+  const id = String((req.query && req.query.id) || "").trim();
+  const path = id
+    ? `/api/automation/admin/tickets/${encodeURIComponent(id)}`
+    : "/api/automation/admin/tickets";
+
+  if (req.method === "GET") {
+    const result = await optisyncFetch(path, { method: "GET" });
+    return res.status(result.status || 502).json(result.data);
+  }
+
+  if (req.method === "POST") {
+    if (!id) {
+      return res.status(400).json({ error: "Ticket id is required." });
+    }
+    const result = await optisyncFetch(path, {
+      method: "POST",
+      body: JSON.stringify(req.body || {}),
+    });
+    return res.status(result.status || 502).json(result.data);
+  }
+
+  return res.status(405).json({ ok: false, error: "Method not allowed" });
+}
+
 module.exports = async function handler(req, res) {
   if (req.method === "OPTIONS") {
     return res.status(204).end();
@@ -48,6 +92,12 @@ module.exports = async function handler(req, res) {
   const resource = String((req.query && req.query.resource) || "").trim();
   if (resource === "page-status") {
     return handlePageStatus(req, res);
+  }
+  if (resource === "notifications") {
+    return handleNotifications(req, res);
+  }
+  if (resource === "tickets") {
+    return handleTickets(req, res);
   }
 
   if (req.method === "PUT") {
