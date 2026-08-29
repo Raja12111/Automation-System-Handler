@@ -415,6 +415,10 @@
               <span>Content generation prompt</span>
               <textarea id="content_gen_prompt" rows="6"></textarea>
             </label>
+            <label>
+              <span>Reports executive summary prompt</span>
+              <textarea id="report_executive_summary_prompt" rows="6"></textarea>
+            </label>
             <div class="row">
               <button class="primary" type="submit">Save prompts</button>
               <button class="ghost" type="button" id="restore">Restore defaults</button>
@@ -724,6 +728,7 @@
         document.getElementById("meta_description_prompt").value = json.prompts.meta_description_prompt || "";
         document.getElementById("topical_map_prompt").value = json.prompts.topical_map_prompt || "";
         document.getElementById("content_gen_prompt").value = json.prompts.content_gen_prompt || "";
+        document.getElementById("report_executive_summary_prompt").value = json.prompts.report_executive_summary_prompt || "";
         defaults = json.defaults;
       }
       function fillCredits(json) {
@@ -1194,6 +1199,7 @@
               meta_description_prompt: document.getElementById("meta_description_prompt").value,
               topical_map_prompt: document.getElementById("topical_map_prompt").value,
               content_gen_prompt: document.getElementById("content_gen_prompt").value,
+              report_executive_summary_prompt: document.getElementById("report_executive_summary_prompt").value,
             }),
           });
           fillPrompts(json);
@@ -1210,6 +1216,7 @@
         document.getElementById("meta_description_prompt").value = defaults.meta_description_prompt || "";
         document.getElementById("topical_map_prompt").value = defaults.topical_map_prompt || "";
         document.getElementById("content_gen_prompt").value = defaults.content_gen_prompt || "";
+        document.getElementById("report_executive_summary_prompt").value = defaults.report_executive_summary_prompt || "";
         show("Restored built-in defaults in the form — click Save to apply.", "ok");
       };
 
