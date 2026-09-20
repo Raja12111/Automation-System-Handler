@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Admin — OptiSync Handler</title>
+    <title>Admin â€” OptiSync Handler</title>
     <meta http-equiv="Cache-Control" content="no-store" />
     <style>
       :root {
@@ -291,9 +291,9 @@
           <h1>All users</h1>
           <p>Everyone who signed up or was created in RankBrain X. New sign-ups from the last 14 days are marked.</p>
           <div class="stats" style="margin-top:16px">
-            <div class="stat"><em>TOTAL</em><b id="u-total">—</b></div>
-            <div class="stat"><em>NEW SIGN-UPS</em><b id="u-new">—</b></div>
-            <div class="stat"><em>ADMINS</em><b id="u-admins">—</b></div>
+            <div class="stat"><em>TOTAL</em><b id="u-total">â€”</b></div>
+            <div class="stat"><em>NEW SIGN-UPS</em><b id="u-new">â€”</b></div>
+            <div class="stat"><em>ADMINS</em><b id="u-admins">â€”</b></div>
           </div>
           <table>
             <thead>
@@ -350,8 +350,8 @@
           <p>RankBrain X starts at $69 per website per month. Start or cancel the plan for each site.</p>
           <div class="stats" style="margin-top:16px">
             <div class="stat"><em>PRICE</em><b id="sub-price">$69</b></div>
-            <div class="stat"><em>ACTIVE SITES</em><b id="sub-active">—</b></div>
-            <div class="stat"><em>MONTHLY TOTAL</em><b id="sub-total">—</b></div>
+            <div class="stat"><em>ACTIVE SITES</em><b id="sub-active">â€”</b></div>
+            <div class="stat"><em>MONTHLY TOTAL</em><b id="sub-total">â€”</b></div>
           </div>
           <table>
             <thead>
@@ -372,9 +372,9 @@
           <h1>Ticket Updates</h1>
           <p>Open and recent OptiSync tickets. Select a ticket to read the thread and post an update.</p>
           <div class="stats" style="margin-top:16px">
-            <div class="stat"><em>OPEN</em><b id="t-open">—</b></div>
-            <div class="stat"><em>TOTAL</em><b id="t-total">—</b></div>
-            <div class="stat"><em>WITH UPDATES</em><b id="t-comments">—</b></div>
+            <div class="stat"><em>OPEN</em><b id="t-open">â€”</b></div>
+            <div class="stat"><em>TOTAL</em><b id="t-total">â€”</b></div>
+            <div class="stat"><em>WITH UPDATES</em><b id="t-comments">â€”</b></div>
           </div>
           <table>
             <thead>
@@ -452,6 +452,11 @@
                 <span>Meta description</span>
                 <textarea id="blog-meta-desc" rows="3" maxlength="180" placeholder="Short search snippet"></textarea>
               </label>
+              <label>
+                <span>Canonical</span>
+                <small>Leave blank to use https://rankbrainx.com/Blog/your-url</small>
+                <input id="blog-canonical" type="url" placeholder="https://rankbrainx.com/Blog/your-url" />
+              </label>
               <div class="row">
                 <button class="ghost" type="button" id="blog-new">New post</button>
                 <button class="ghost" type="button" id="blog-draft">Save draft</button>
@@ -507,7 +512,7 @@
                 <button type="button" data-content-prompt="brand">Brand</button>
               </div>
               <div id="content-prompt-pane-brief">
-                <p>Step 1 — Content brief from SERP headings.</p>
+                <p>Step 1 â€” Content brief from SERP headings.</p>
                 <label>
                   <span>Brief system prompt</span>
                   <textarea id="content_gen_brief_system" rows="6"></textarea>
@@ -518,7 +523,7 @@
                 </label>
               </div>
               <div id="content-prompt-pane-nlp" class="hidden">
-                <p>Step 2 — NLP SEO research. Must return JSON only.</p>
+                <p>Step 2 â€” NLP SEO research. Must return JSON only.</p>
                 <label>
                   <span>NLP system prompt</span>
                   <textarea id="content_gen_nlp_system" rows="6"></textarea>
@@ -529,7 +534,7 @@
                 </label>
               </div>
               <div id="content-prompt-pane-write" class="hidden">
-                <p>Step 3 — Write the article.</p>
+                <p>Step 3 â€” Write the article.</p>
                 <label>
                   <span>Write system prompt</span>
                   <textarea id="content_gen_write_system" rows="6"></textarea>
@@ -540,7 +545,7 @@
                 </label>
               </div>
               <div id="content-prompt-pane-brand" class="hidden">
-                <p>Last step — Brand folder enhance.</p>
+                <p>Last step â€” Brand folder enhance.</p>
                 <label>
                   <span>Brand system prompt</span>
                   <textarea id="content_gen_brand_system" rows="6"></textarea>
@@ -567,11 +572,11 @@
         <section id="api" class="panel hidden">
           <div class="ok">API</div>
           <h1>API usage remaining</h1>
-          <p>Sign in to OpenAI and Claude, then connect the account so we can extract the exact remaining credits — not an estimate from our own calls.</p>
+          <p>Sign in to OpenAI and Claude, then connect the account so we can extract the exact remaining credits â€” not an estimate from our own calls.</p>
           <div class="stats" style="margin-top:16px">
-            <div class="stat"><em>OPENAI LEFT</em><b id="api-openai-left">—</b></div>
-            <div class="stat"><em>CLAUDE LEFT</em><b id="api-claude-left">—</b></div>
-            <div class="stat"><em>SYNCED</em><b id="api-month">—</b></div>
+            <div class="stat"><em>OPENAI LEFT</em><b id="api-openai-left">â€”</b></div>
+            <div class="stat"><em>CLAUDE LEFT</em><b id="api-claude-left">â€”</b></div>
+            <div class="stat"><em>SYNCED</em><b id="api-month">â€”</b></div>
           </div>
           <div class="row">
             <button class="primary" type="button" id="api-sync">Sync connected accounts</button>
@@ -617,7 +622,7 @@
                 <a class="ghost" href="https://console.anthropic.com/settings/admin-keys" target="_blank" rel="noreferrer">Admin keys</a>
               </div>
               <label><span>Account email</span><input id="anthropic-email" type="email" autocomplete="off" /></label>
-              <label><span>Admin API key (sk-ant-admin01-…)</span><input id="anthropic-key" type="password" autocomplete="new-password" /></label>
+              <label><span>Admin API key (sk-ant-admin01-â€¦)</span><input id="anthropic-key" type="password" autocomplete="new-password" /></label>
               <label><span>Remaining $ (if key cannot read billing)</span><input id="anthropic-remaining" type="number" min="0" step="0.0001" /></label>
               <label><span>Used $</span><input id="anthropic-used" type="number" min="0" step="0.0001" /></label>
               <label><span>Limit $</span><input id="anthropic-limit" type="number" min="0" step="0.0001" /></label>
@@ -634,14 +639,14 @@
           <h1>Page Down</h1>
           <p>If a page or tool is not working, set it to under maintenance or Coming Soon. Users see that screen instead of the broken page. Set it back to Live when it is ready.</p>
           <div class="stats" style="margin-top:16px">
-            <div class="stat"><em>LIVE</em><b id="pd-live">—</b></div>
-            <div class="stat"><em>DOWN</em><b id="pd-down">—</b></div>
-            <div class="stat"><em>COMING SOON</em><b id="pd-soon">—</b></div>
+            <div class="stat"><em>LIVE</em><b id="pd-live">â€”</b></div>
+            <div class="stat"><em>DOWN</em><b id="pd-down">â€”</b></div>
+            <div class="stat"><em>COMING SOON</em><b id="pd-soon">â€”</b></div>
           </div>
           <div class="row">
             <label class="pd-search">
               <span>Search page or tool</span>
-              <input id="pd-search" type="search" placeholder="Meta Tags, PageSpeed, Cloud Stack…" />
+              <input id="pd-search" type="search" placeholder="Meta Tags, PageSpeed, Cloud Stackâ€¦" />
             </label>
             <button class="primary" type="button" id="pd-search-btn" style="align-self:end">Search</button>
             <label style="margin:0;min-width:12rem">
@@ -674,9 +679,10 @@
                 <th>Set to</th>
               </tr>
             </thead>
-            <tbody id="pd-rows"><tr><td colspan="4">Loading RankBrain X pages…</td></tr></tbody>
+            <tbody id="pd-rows"><tr><td colspan="4">Loading RankBrain X pagesâ€¦</td></tr></tbody>
           </table>
         </section>
+
 
         <section id="credits" class="panel hidden">
           <div class="ok">CREDITS</div>
@@ -685,9 +691,9 @@
 
           <h2 style="margin:20px 0 8px;font-size:1.05rem;color:#3f3f3f">AI Generation Credits</h2>
           <div class="stats">
-            <div class="stat"><em>AVAILABLE</em><b id="c-remaining">—</b></div>
-            <div class="stat"><em>USED</em><b id="c-used">—</b></div>
-            <div class="stat"><em>QUOTA</em><b id="c-quota">—</b></div>
+            <div class="stat"><em>AVAILABLE</em><b id="c-remaining">â€”</b></div>
+            <div class="stat"><em>USED</em><b id="c-used">â€”</b></div>
+            <div class="stat"><em>QUOTA</em><b id="c-quota">â€”</b></div>
           </div>
           <table>
             <thead>
@@ -727,9 +733,9 @@
           <h2 style="margin:32px 0 8px;font-size:1.05rem;color:#3f3f3f">Super Credits</h2>
           <p>Authority Hype only (Cloud Stack, Google Stack, Foundational Links). Cannot be spent on AI generation.</p>
           <div class="stats">
-            <div class="stat"><em>AVAILABLE</em><b id="s-remaining">—</b></div>
-            <div class="stat"><em>USED</em><b id="s-used">—</b></div>
-            <div class="stat"><em>QUOTA</em><b id="s-quota">—</b></div>
+            <div class="stat"><em>AVAILABLE</em><b id="s-remaining">â€”</b></div>
+            <div class="stat"><em>USED</em><b id="s-used">â€”</b></div>
+            <div class="stat"><em>QUOTA</em><b id="s-quota">â€”</b></div>
           </div>
           <table>
             <thead>
@@ -858,15 +864,15 @@
         document.getElementById("ticket-rows").innerHTML = tickets.length
           ? tickets.map((ticket) => {
               const latest = ticket.latestUpdate
-                ? `${esc(ticket.latestUpdate.author)} · ${new Date(ticket.latestUpdate.createdAt).toLocaleString()}<br><small>${esc(ticket.latestUpdate.body).slice(0, 120)}</small>`
+                ? `${esc(ticket.latestUpdate.author)} Â· ${new Date(ticket.latestUpdate.createdAt).toLocaleString()}<br><small>${esc(ticket.latestUpdate.body).slice(0, 120)}</small>`
                 : "No updates yet";
               const status = ticket.status === "OPEN"
                 ? '<span class="badge">Open</span>'
                 : '<span class="badge closed">Closed</span>';
               const selected = ticket.id === selectedTicketId ? " selected" : "";
               return `<tr class="clickable${selected}" data-ticket="${esc(ticket.id)}">
-                <td>${esc(ticket.title)}<br><small>${esc(ticket.priority)} · ${esc(ticket.createdBy)}</small></td>
-                <td>${esc(ticket.website)}<br><small>${esc(ticket.companyName || "—")}</small></td>
+                <td>${esc(ticket.title)}<br><small>${esc(ticket.priority)} Â· ${esc(ticket.createdBy)}</small></td>
+                <td>${esc(ticket.website)}<br><small>${esc(ticket.companyName || "â€”")}</small></td>
                 <td>${status}</td>
                 <td>${latest}</td>
               </tr>`;
@@ -878,12 +884,12 @@
         document.getElementById("ticket-detail").classList.remove("hidden");
         document.getElementById("ticket-title").textContent = ticket.title;
         document.getElementById("ticket-meta").textContent =
-          `${ticket.website} · ${ticket.status} · ${ticket.priority} · opened by ${ticket.createdBy}`;
+          `${ticket.website} Â· ${ticket.status} Â· ${ticket.priority} Â· opened by ${ticket.createdBy}`;
         document.getElementById("ticket-description").textContent = ticket.description || "";
         const updates = ticket.updates || [];
         document.getElementById("ticket-thread").innerHTML = updates.length
           ? updates.map((item) => `<div class="update">
-              <div class="meta">${esc(item.author)} · ${new Date(item.createdAt).toLocaleString()}</div>
+              <div class="meta">${esc(item.author)} Â· ${new Date(item.createdAt).toLocaleString()}</div>
               <p>${esc(item.body)}</p>
             </div>`).join("")
           : `<p>No updates yet. Post the first comment below.</p>`;
@@ -905,6 +911,7 @@
           body: document.getElementById("blog-editor").innerHTML,
           metaTitle: document.getElementById("blog-meta-title").value,
           metaDescription: document.getElementById("blog-meta-desc").value,
+          canonicalUrl: document.getElementById("blog-canonical").value,
           authorId: document.getElementById("blog-author").value,
           status,
         };
@@ -916,6 +923,7 @@
         document.getElementById("blog-slug").value = "";
         document.getElementById("blog-meta-title").value = "";
         document.getElementById("blog-meta-desc").value = "";
+        document.getElementById("blog-canonical").value = "";
         document.getElementById("blog-editor").innerHTML = "";
         document.getElementById("blog-view").classList.add("hidden");
         document.getElementById("blog-publish").textContent = "Publish to /Blog/";
@@ -927,6 +935,7 @@
         document.getElementById("blog-slug").value = post.slug || "";
         document.getElementById("blog-meta-title").value = post.metaTitle || "";
         document.getElementById("blog-meta-desc").value = post.metaDescription || "";
+        document.getElementById("blog-canonical").value = post.canonicalUrl || "";
         document.getElementById("blog-author").value = post.authorId || "";
         document.getElementById("blog-editor").innerHTML = post.body || "";
         const view = document.getElementById("blog-view");
@@ -990,7 +999,7 @@
                 ? `<span class="badge">${fmt(row.remaining)} available</span>`
                 : `<span class="badge muted">0 available</span>`;
               return `<tr>
-                <td>${row.name || "—"}<br><small>${row.email} · ${row.role}</small></td>
+                <td>${row.name || "â€”"}<br><small>${row.email} Â· ${row.role}</small></td>
                 <td>${fmt(row.used)}</td>
                 <td>${available}</td>
                 <td>${fmt(row.quota)}</td>
@@ -1028,7 +1037,7 @@
                 ? `<span class="badge">${fmt(row.remaining)} available</span>`
                 : `<span class="badge muted">0 available</span>`;
               return `<tr>
-                <td>${row.name || "—"}<br><small>${row.email} · ${row.role}</small></td>
+                <td>${row.name || "â€”"}<br><small>${row.email} Â· ${row.role}</small></td>
                 <td>${fmt(row.used)}</td>
                 <td>${available}</td>
                 <td>${fmt(row.quota)}</td>
@@ -1049,13 +1058,13 @@
               const status = site.status === "ACTIVE" ? "Active" : site.status === "CANCELED" ? "Canceled" : "Not subscribed";
               const renews = site.status === "ACTIVE" && site.currentPeriodEnd
                 ? new Date(site.currentPeriodEnd).toLocaleDateString()
-                : "—";
+                : "â€”";
               const action = site.status === "ACTIVE"
                 ? `<button class="ghost" type="button" data-sub="cancel" data-id="${site.clientId}">Cancel</button>`
                 : `<button class="primary" type="button" data-sub="start" data-id="${site.clientId}">Start $69/mo</button>`;
               return `<tr>
-                <td>${site.accountLabel}<br><small>${site.website || "—"}</small></td>
-                <td>${site.companyName || "—"}</td>
+                <td>${site.accountLabel}<br><small>${site.website || "â€”"}</small></td>
+                <td>${site.companyName || "â€”"}</td>
                 <td>${status}</td>
                 <td>${renews}</td>
                 <td>${action}</td>
@@ -1074,12 +1083,12 @@
         }
       }
       function moneyExact(n) {
-        if (n === null || n === undefined || !Number.isFinite(Number(n))) return "—";
+        if (n === null || n === undefined || !Number.isFinite(Number(n))) return "â€”";
         return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 4 }).format(Number(n));
       }
       function accountLabel(account) {
         if (!account || !account.connected) return "Not connected";
-        return [account.email, account.keyHint].filter(Boolean).join(" · ") || "Account connected";
+        return [account.email, account.keyHint].filter(Boolean).join(" Â· ") || "Account connected";
       }
       function fillApiUsage(json) {
         const providers = json.providers || [];
@@ -1087,7 +1096,7 @@
         const claude = providers.find((row) => row.id === "anthropic") || {};
         document.getElementById("api-month").textContent = json.syncedAt
           ? new Date(json.syncedAt).toLocaleString()
-          : (json.month || "—");
+          : (json.month || "â€”");
         document.getElementById("api-openai-left").textContent = moneyExact(openai.remainingUsd);
         document.getElementById("api-claude-left").textContent = moneyExact(claude.remainingUsd);
         document.getElementById("openai-account").textContent = accountLabel(openai.account);
@@ -1103,7 +1112,7 @@
                 <td>${moneyExact(row.remainingUsd)}</td>
                 <td>${moneyExact(row.usedUsd)}</td>
                 <td>${moneyExact(row.limitUsd != null ? row.limitUsd : row.grantedUsd)}</td>
-                <td>${row.source || "—"}</td>
+                <td>${row.source || "â€”"}</td>
               </tr>`;
             }).join("")
           : `<tr><td colspan="6">Could not load OpenAI / Claude billing yet.</td></tr>`;
@@ -1185,7 +1194,7 @@
         });
         document.getElementById("pd-rows").innerHTML = visible.length
           ? visible.map((row) => `<tr>
-              <td>${row.label}<br><small>${row.path} · ${row.kind}</small></td>
+              <td>${row.label}<br><small>${row.path} Â· ${row.kind}</small></td>
               <td>${row.group}</td>
               <td>${statusBadge(row.status)}</td>
               <td>
@@ -1217,7 +1226,7 @@
           <p class="note-bar-copy">
             <strong>${esc(latest.title)}</strong>
             <span>${esc(latest.body)}</span>
-            <small>${esc(latest.website)}${latest.companyName ? " · " + esc(latest.companyName) : ""} · ${new Date(latest.createdAt).toLocaleString()}</small>
+            <small>${esc(latest.website)}${latest.companyName ? " Â· " + esc(latest.companyName) : ""} Â· ${new Date(latest.createdAt).toLocaleString()}</small>
           </p>
           <button class="ghost" type="button" data-note-dismiss="${esc(latest.id)}">Dismiss</button>
           ${extra ? `<button class="primary" type="button" id="note-more">${notesOpen ? "Hide" : "+" + extra + " more"}</button>` : ""}
@@ -1233,7 +1242,7 @@
             <div style="flex:1">
               <p><strong>${esc(item.title)}</strong></p>
               <p>${esc(item.body)}</p>
-              <small>${esc(item.website)} · ${new Date(item.createdAt).toLocaleString()}</small>
+              <small>${esc(item.website)} Â· ${new Date(item.createdAt).toLocaleString()}</small>
             </div>
             <button class="ghost" type="button" data-note-dismiss="${esc(item.id)}">Dismiss</button>
           </article>
@@ -1261,11 +1270,11 @@
               const when = new Date(user.createdAt).toLocaleString();
               const badge = user.isNew ? '<span class="badge">New</span>' : '<span class="badge muted">Existing</span>';
               return `<tr>
-                <td>${user.name || "—"} ${badge}</td>
+                <td>${user.name || "â€”"} ${badge}</td>
                 <td>${user.email}</td>
                 <td>${user.role}</td>
                 <td>${when}</td>
-                <td>${user.signupMethod || "—"}</td>
+                <td>${user.signupMethod || "â€”"}</td>
               </tr>`;
             }).join("")
           : `<tr><td colspan="5">No users yet.</td></tr>`;
@@ -1547,7 +1556,7 @@
         ids.forEach((id) => {
           document.getElementById(id).value = defaults[id] || "";
         });
-        show("Restored built-in defaults for this tab — click Save to apply.", "ok");
+        show("Restored built-in defaults for this tab â€” click Save to apply.", "ok");
       };
 
       document.getElementById("api-sync").onclick = async () => {

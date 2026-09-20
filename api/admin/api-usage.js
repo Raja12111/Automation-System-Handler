@@ -79,6 +79,21 @@ async function handleTickets(req, res) {
   return res.status(405).json({ ok: false, error: "Method not allowed" });
 }
 
+async function handleBlog(req, res) {
+  if (req.method === "GET") {
+    const result = await optisyncFetch("/api/automation/admin/blog", { method: "GET" });
+    return res.status(result.status || 502).json(result.data);
+  }
+  if (req.method === "POST" || req.method === "PUT") {
+    const result = await optisyncFetch("/api/automation/admin/blog", {
+      method: "POST",
+      body: JSON.stringify(req.body || {}),
+    });
+    return res.status(result.status || 502).json(result.data);
+  }
+  return res.status(405).json({ ok: false, error: "Method not allowed" });
+}
+
 module.exports = async function handler(req, res) {
   if (req.method === "OPTIONS") {
     return res.status(204).end();
@@ -98,6 +113,9 @@ module.exports = async function handler(req, res) {
   }
   if (resource === "tickets") {
     return handleTickets(req, res);
+  }
+  if (resource === "blog") {
+    return handleBlog(req, res);
   }
 
   if (req.method === "PUT") {

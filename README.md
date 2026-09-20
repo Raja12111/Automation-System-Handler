@@ -23,6 +23,7 @@ Vercel team: **opti-sync1**. GitHub: [Raja12111/Automation-System-Handler](https
 | GET/POST | `/api/admin/subscriptions` | Admin session | $69/website/month subscriptions |
 | GET/POST | `/api/admin/api-usage` | Admin session | Exact OpenAI + Claude remaining credits |
 | GET/PUT | `/api/admin/page-status` | Admin session | Page Down: maintenance or Coming Soon |
+| GET/POST | `/api/admin/blog` | Admin session | Publish RankBrain X blog posts to /Blog/ |
 | GET | `/api/admin/tickets` | Admin session | Support tickets |
 | GET/POST | `/api/admin/tickets/:id` | Admin session | Ticket detail + updates |
 
