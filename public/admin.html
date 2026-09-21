@@ -213,6 +213,20 @@
       }
       .update .meta { color: var(--muted); font-size: 0.75rem; margin-bottom: 6px; }
       .update p { margin: 0; color: var(--ink); white-space: pre-wrap; }
+      .editor-toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+      .editor-toolbar button { border-radius: 8px; padding: 6px 10px; }
+      .editor-body {
+        min-height: 280px;
+        margin-top: 8px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 12px 14px;
+        background: #fff;
+        line-height: 1.65;
+      }
+      .editor-body:empty:before { content: attr(data-placeholder); color: #9aa3a0; }
+      .blog-split { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(16rem, 0.8fr); gap: 18px; margin-top: 16px; }
+      @media (max-width: 900px) { .blog-split { grid-template-columns: 1fr; } }
       .hidden { display: none !important; }
       .check { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
       .check input { width: auto; margin: 0; }
@@ -259,6 +273,7 @@
           <button type="button" data-tab="new-user">New user</button>
           <button type="button" data-tab="subscriptions">Subscriptions</button>
           <button type="button" data-tab="tickets">Ticket Updates</button>
+          <button type="button" data-tab="blog">Blog Editor</button>
           <button type="button" data-tab="prompts">Prompts</button>
           <button type="button" data-tab="api">API</button>
           <button type="button" data-tab="credits">Credits</button>
@@ -390,38 +405,114 @@
           </div>
         </section>
 
+        <section id="blog" class="panel hidden">
+          <div class="ok">CONTENT</div>
+          <h1>Blog Editor</h1>
+          <p>Write a RankBrain X post and publish it to rankbrainx.com/Blog/.</p>
+          <div class="blog-split">
+            <div>
+              <label>
+                <span>Title</span>
+                <input id="blog-title" placeholder="Blog post title" />
+              </label>
+              <label>
+                <span>URL</span>
+                <small>rankbrainx.com/Blog/</small>
+                <input id="blog-slug" placeholder="post-url" />
+              </label>
+              <div class="row" style="align-items:end">
+                <label style="margin:0;flex:1;min-width:12rem">
+                  <span>Author</span>
+                  <select id="blog-author"></select>
+                </label>
+                <label style="margin:0;flex:1;min-width:10rem">
+                  <span>Add author</span>
+                  <input id="blog-new-author" placeholder="Author name" />
+                </label>
+                <button class="ghost" type="button" id="blog-add-author">Add</button>
+              </div>
+              <label>
+                <span>Editor</span>
+                <div class="editor-toolbar">
+                  <button class="ghost" type="button" data-blog-cmd="H2">H2</button>
+                  <button class="ghost" type="button" data-blog-cmd="H3">H3</button>
+                  <button class="ghost" type="button" data-blog-cmd="bold">Bold</button>
+                  <button class="ghost" type="button" data-blog-cmd="italic">Italic</button>
+                  <button class="ghost" type="button" data-blog-cmd="ul">List</button>
+                  <button class="ghost" type="button" data-blog-cmd="quote">Quote</button>
+                  <button class="ghost" type="button" data-blog-cmd="link">Link</button>
+                </div>
+                <div id="blog-editor" class="editor-body" contenteditable="true" data-placeholder="Write the blog post here."></div>
+              </label>
+              <label>
+                <span>Meta title</span>
+                <input id="blog-meta-title" maxlength="70" placeholder="SEO title" />
+              </label>
+              <label>
+                <span>Meta description</span>
+                <textarea id="blog-meta-desc" rows="3" maxlength="180" placeholder="Short search snippet"></textarea>
+              </label>
+              <div class="row">
+                <button class="ghost" type="button" id="blog-new">New post</button>
+                <button class="ghost" type="button" id="blog-draft">Save draft</button>
+                <button class="primary" type="button" id="blog-publish">Publish to /Blog/</button>
+                <a class="ghost hidden" id="blog-view" href="#" target="_blank" rel="noreferrer">View live</a>
+                <button class="ghost" type="button" id="blog-delete">Delete</button>
+              </div>
+            </div>
+            <div>
+              <p class="ok">SAVED POSTS</p>
+              <div id="blog-posts"></div>
+            </div>
+          </div>
+        </section>
+
         <section id="prompts" class="panel hidden">
           <div class="ok">PROMPTS</div>
           <h1>Prompts</h1>
-          <p>These ChatGPT prompts drive SEO Bot meta tags, topical map extraction, and Content Gen drafts. Saved values live on RankBrain X.</p>
+          <p>Each tool has its own prompt tab. Saved values live on RankBrain X.</p>
+          <div class="pd-tabs" id="prompt-tabs">
+            <button type="button" data-prompt-tab="meta" class="active">Meta tags</button>
+            <button type="button" data-prompt-tab="topical">Topical map</button>
+            <button type="button" data-prompt-tab="content">Content Gen</button>
+            <button type="button" data-prompt-tab="reports">Reports</button>
+          </div>
           <form id="prompts-form">
-            <label>
-              <span>System prompt <small style="display:inline;font-weight:400">(optional)</small></span>
-              <textarea id="meta_system_prompt" rows="3"></textarea>
-            </label>
-            <label>
-              <span>Meta title prompt</span>
-              <textarea id="meta_title_prompt" rows="6"></textarea>
-            </label>
-            <label>
-              <span>Meta description prompt</span>
-              <textarea id="meta_description_prompt" rows="6"></textarea>
-            </label>
-            <label>
-              <span>Topical map prompt</span>
-              <textarea id="topical_map_prompt" rows="6"></textarea>
-            </label>
-            <label>
-              <span>Content generation prompt</span>
-              <textarea id="content_gen_prompt" rows="6"></textarea>
-            </label>
-            <label>
-              <span>Reports executive summary prompt</span>
-              <textarea id="report_executive_summary_prompt" rows="6"></textarea>
-            </label>
+            <div id="prompt-pane-meta">
+              <label>
+                <span>System prompt <small style="display:inline;font-weight:400">(optional)</small></span>
+                <textarea id="meta_system_prompt" rows="3"></textarea>
+              </label>
+              <label>
+                <span>Meta title prompt</span>
+                <textarea id="meta_title_prompt" rows="6"></textarea>
+              </label>
+              <label>
+                <span>Meta description prompt</span>
+                <textarea id="meta_description_prompt" rows="6"></textarea>
+              </label>
+            </div>
+            <div id="prompt-pane-topical" class="hidden">
+              <label>
+                <span>Topical map prompt</span>
+                <textarea id="topical_map_prompt" rows="8"></textarea>
+              </label>
+            </div>
+            <div id="prompt-pane-content" class="hidden">
+              <label>
+                <span>Content generation prompt</span>
+                <textarea id="content_gen_prompt" rows="8"></textarea>
+              </label>
+            </div>
+            <div id="prompt-pane-reports" class="hidden">
+              <label>
+                <span>Reports executive summary prompt</span>
+                <textarea id="report_executive_summary_prompt" rows="8"></textarea>
+              </label>
+            </div>
             <div class="row">
-              <button class="primary" type="submit">Save prompts</button>
-              <button class="ghost" type="button" id="restore">Restore defaults</button>
+              <button class="primary" type="submit">Save this tab</button>
+              <button class="ghost" type="button" id="restore">Restore this tab</button>
             </div>
           </form>
         </section>
@@ -634,6 +725,22 @@
       const emailInput = document.getElementById("email");
       const passwordInput = document.getElementById("password");
       let defaults = null;
+      let promptTab = "meta";
+      const promptFields = {
+        meta: ["meta_system_prompt", "meta_title_prompt", "meta_description_prompt"],
+        topical: ["topical_map_prompt"],
+        content: ["content_gen_prompt"],
+        reports: ["report_executive_summary_prompt"],
+      };
+      function setPromptTab(tab) {
+        promptTab = tab;
+        document.querySelectorAll("#prompt-tabs button").forEach((b) => {
+          b.classList.toggle("active", b.dataset.promptTab === tab);
+        });
+        Object.keys(promptFields).forEach((id) => {
+          document.getElementById("prompt-pane-" + id).classList.toggle("hidden", id !== tab);
+        });
+      }
       let pageDownData = { pages: [], groups: [] };
       let pageDownTab = "all";
       let pageDownQuery = "";
@@ -669,7 +776,7 @@
       }
       function setTab(tab) {
         document.querySelectorAll(".nav button").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
-        ["users", "new-user", "subscriptions", "tickets", "prompts", "api", "page-down", "credits"].forEach((id) => {
+        ["users", "new-user", "subscriptions", "tickets", "blog", "prompts", "api", "page-down", "credits"].forEach((id) => {
           document.getElementById(id).classList.toggle("hidden", id !== tab);
         });
       }
@@ -721,6 +828,73 @@
         document.querySelectorAll("#ticket-rows tr[data-ticket]").forEach((row) => {
           row.classList.toggle("selected", row.dataset.ticket === ticket.id);
         });
+      }
+      let blogPostId = "";
+      let blogSlugTouched = false;
+      function slugifyBlog(value) {
+        return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
+      }
+      function blogPayload(status) {
+        return {
+          id: blogPostId,
+          action: blogPostId ? "update" : "create",
+          title: document.getElementById("blog-title").value,
+          slug: document.getElementById("blog-slug").value,
+          body: document.getElementById("blog-editor").innerHTML,
+          metaTitle: document.getElementById("blog-meta-title").value,
+          metaDescription: document.getElementById("blog-meta-desc").value,
+          authorId: document.getElementById("blog-author").value,
+          status,
+        };
+      }
+      function resetBlogForm() {
+        blogPostId = "";
+        blogSlugTouched = false;
+        document.getElementById("blog-title").value = "";
+        document.getElementById("blog-slug").value = "";
+        document.getElementById("blog-meta-title").value = "";
+        document.getElementById("blog-meta-desc").value = "";
+        document.getElementById("blog-editor").innerHTML = "";
+        document.getElementById("blog-view").classList.add("hidden");
+        document.getElementById("blog-publish").textContent = "Publish to /Blog/";
+      }
+      function applyBlogPost(post) {
+        blogPostId = post.id;
+        blogSlugTouched = true;
+        document.getElementById("blog-title").value = post.title || "";
+        document.getElementById("blog-slug").value = post.slug || "";
+        document.getElementById("blog-meta-title").value = post.metaTitle || "";
+        document.getElementById("blog-meta-desc").value = post.metaDescription || "";
+        document.getElementById("blog-author").value = post.authorId || "";
+        document.getElementById("blog-editor").innerHTML = post.body || "";
+        const view = document.getElementById("blog-view");
+        if (post.status === "PUBLISHED" && post.slug) {
+          view.href = "https://rankbrainx.com/Blog/" + post.slug;
+          view.classList.remove("hidden");
+          document.getElementById("blog-publish").textContent = "Unpublish";
+        } else {
+          view.classList.add("hidden");
+          document.getElementById("blog-publish").textContent = "Publish to /Blog/";
+        }
+      }
+      function fillBlog(json) {
+        const authors = json.authors || [];
+        const selected = document.getElementById("blog-author").value;
+        document.getElementById("blog-author").innerHTML = '<option value="">Select author</option>' +
+          authors.map((author) => `<option value="${esc(author.id)}">${esc(author.name)}</option>`).join("");
+        if (selected && authors.some((author) => author.id === selected)) {
+          document.getElementById("blog-author").value = selected;
+        } else if (authors[0]) {
+          document.getElementById("blog-author").value = authors[0].id;
+        }
+        const posts = json.posts || [];
+        document.getElementById("blog-posts").innerHTML = posts.length
+          ? posts.map((post) => `<article class="update${post.id === blogPostId ? " selected" : ""}" data-blog-id="${esc(post.id)}" style="cursor:pointer">
+              <p><strong>${esc(post.title || "Untitled")}</strong></p>
+              <small>${post.status === "PUBLISHED" ? "Published" : "Draft"}${post.author && post.author.name ? " · " + esc(post.author.name) : ""} · /Blog/${esc(post.slug)}</small>
+            </article>`).join("")
+          : "<p>No posts yet. Write one and publish it to /Blog/.</p>";
+        if (json.post) applyBlogPost(json.post);
       }
       function fillPrompts(json) {
         document.getElementById("meta_system_prompt").value = json.prompts.meta_system_prompt || "";
@@ -1074,6 +1248,7 @@
             if (tab === "users") fillUsers(await api("/api/admin/users"));
             if (tab === "subscriptions") fillSubscriptions(await api("/api/admin/subscriptions"));
             if (tab === "tickets") fillTickets(await api("/api/admin/tickets"));
+            if (tab === "blog") fillBlog(await api("/api/admin/blog"));
             if (tab === "prompts") fillPrompts(await api("/api/admin/prompts"));
             if (tab === "api") fillApiUsage(await api("/api/admin/api-usage"));
             if (tab === "page-down") {
@@ -1123,6 +1298,78 @@
         } catch (err) {
           show(err.message, "err");
         }
+      });
+
+      document.getElementById("blog-title").addEventListener("input", () => {
+        if (blogSlugTouched) return;
+        const title = document.getElementById("blog-title").value;
+        document.getElementById("blog-slug").value = slugifyBlog(title);
+        if (!document.getElementById("blog-meta-title").value) {
+          document.getElementById("blog-meta-title").value = title.slice(0, 60);
+        }
+      });
+      document.getElementById("blog-slug").addEventListener("input", () => {
+        blogSlugTouched = true;
+        document.getElementById("blog-slug").value = slugifyBlog(document.getElementById("blog-slug").value);
+      });
+      document.querySelector(".editor-toolbar").addEventListener("mousedown", (e) => {
+        const btn = e.target.closest("[data-blog-cmd]");
+        if (!btn) return;
+        e.preventDefault();
+        const editor = document.getElementById("blog-editor");
+        editor.focus();
+        const cmd = btn.dataset.blogCmd;
+        if (cmd === "H2") document.execCommand("formatBlock", false, "H2");
+        else if (cmd === "H3") document.execCommand("formatBlock", false, "H3");
+        else if (cmd === "ul") document.execCommand("insertUnorderedList");
+        else if (cmd === "quote") document.execCommand("formatBlock", false, "BLOCKQUOTE");
+        else if (cmd === "link") {
+          const url = window.prompt("Link URL");
+          if (url) document.execCommand("createLink", false, url);
+        } else document.execCommand(cmd);
+      });
+      document.getElementById("blog-new").onclick = () => { resetBlogForm(); };
+      document.getElementById("blog-draft").onclick = async () => {
+        try {
+          fillBlog(await api("/api/admin/blog", { method: "POST", body: JSON.stringify(blogPayload("DRAFT")) }));
+          show("Draft saved.", "ok");
+        } catch (err) { show(err.message, "err"); }
+      };
+      document.getElementById("blog-publish").onclick = async () => {
+        try {
+          const next = document.getElementById("blog-publish").textContent === "Unpublish" ? "DRAFT" : "PUBLISHED";
+          fillBlog(await api("/api/admin/blog", { method: "POST", body: JSON.stringify(blogPayload(next)) }));
+          show(next === "PUBLISHED" ? "Published to /Blog/." : "Post unpublished.", "ok");
+        } catch (err) { show(err.message, "err"); }
+      };
+      document.getElementById("blog-add-author").onclick = async () => {
+        const name = document.getElementById("blog-new-author").value.trim();
+        if (!name) return;
+        try {
+          const json = await api("/api/admin/blog", { method: "POST", body: JSON.stringify({ action: "add-author", name }) });
+          document.getElementById("blog-new-author").value = "";
+          fillBlog(json);
+          if (json.author) document.getElementById("blog-author").value = json.author.id;
+          show("Author added.", "ok");
+        } catch (err) { show(err.message, "err"); }
+      };
+      document.getElementById("blog-delete").onclick = async () => {
+        if (!blogPostId || !window.confirm("Delete this blog post?")) return;
+        try {
+          fillBlog(await api("/api/admin/blog", { method: "POST", body: JSON.stringify({ action: "delete", id: blogPostId }) }));
+          resetBlogForm();
+          show("Post deleted.", "ok");
+        } catch (err) { show(err.message, "err"); }
+      };
+      document.getElementById("blog-posts").addEventListener("click", (e) => {
+        const card = e.target.closest("[data-blog-id]");
+        if (!card) return;
+        const postId = card.dataset.blogId;
+        api("/api/admin/blog").then((json) => {
+          const post = (json.posts || []).find((row) => row.id === postId);
+          fillBlog(json);
+          if (post) applyBlogPost(post);
+        }).catch((err) => show(err.message, "err"));
       });
 
       document.getElementById("ticket-update").onsubmit = async (e) => {
@@ -1209,15 +1456,18 @@
         }
       };
 
+      document.getElementById("prompt-tabs").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-prompt-tab]");
+        if (!btn) return;
+        setPromptTab(btn.dataset.promptTab);
+      });
+
       document.getElementById("restore").onclick = () => {
         if (!defaults) return;
-        document.getElementById("meta_system_prompt").value = defaults.meta_system_prompt || "";
-        document.getElementById("meta_title_prompt").value = defaults.meta_title_prompt || "";
-        document.getElementById("meta_description_prompt").value = defaults.meta_description_prompt || "";
-        document.getElementById("topical_map_prompt").value = defaults.topical_map_prompt || "";
-        document.getElementById("content_gen_prompt").value = defaults.content_gen_prompt || "";
-        document.getElementById("report_executive_summary_prompt").value = defaults.report_executive_summary_prompt || "";
-        show("Restored built-in defaults in the form — click Save to apply.", "ok");
+        (promptFields[promptTab] || []).forEach((id) => {
+          document.getElementById(id).value = defaults[id] || "";
+        });
+        show("Restored built-in defaults for this tab — click Save to apply.", "ok");
       };
 
       document.getElementById("api-sync").onclick = async () => {
