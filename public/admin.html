@@ -499,10 +499,57 @@
               </label>
             </div>
             <div id="prompt-pane-content" class="hidden">
-              <label>
-                <span>Content generation prompt</span>
-                <textarea id="content_gen_prompt" rows="8"></textarea>
-              </label>
+              <p>These are the exact Brief, NLP, Write, and Brand prompts Content Gen sends to the model.</p>
+              <div class="pd-tabs" id="content-prompt-tabs">
+                <button type="button" data-content-prompt="brief" class="active">Brief</button>
+                <button type="button" data-content-prompt="nlp">NLP</button>
+                <button type="button" data-content-prompt="write">Write</button>
+                <button type="button" data-content-prompt="brand">Brand</button>
+              </div>
+              <div id="content-prompt-pane-brief">
+                <p>Step 1 — Content brief from SERP headings.</p>
+                <label>
+                  <span>Brief system prompt</span>
+                  <textarea id="content_gen_brief_system" rows="6"></textarea>
+                </label>
+                <label>
+                  <span>Brief user prompt</span>
+                  <textarea id="content_gen_brief_user" rows="14"></textarea>
+                </label>
+              </div>
+              <div id="content-prompt-pane-nlp" class="hidden">
+                <p>Step 2 — NLP SEO research. Must return JSON only.</p>
+                <label>
+                  <span>NLP system prompt</span>
+                  <textarea id="content_gen_nlp_system" rows="6"></textarea>
+                </label>
+                <label>
+                  <span>NLP user prompt</span>
+                  <textarea id="content_gen_nlp_user" rows="14"></textarea>
+                </label>
+              </div>
+              <div id="content-prompt-pane-write" class="hidden">
+                <p>Step 3 — Write the article.</p>
+                <label>
+                  <span>Write system prompt</span>
+                  <textarea id="content_gen_write_system" rows="6"></textarea>
+                </label>
+                <label>
+                  <span>Write user prompt</span>
+                  <textarea id="content_gen_write_user" rows="14"></textarea>
+                </label>
+              </div>
+              <div id="content-prompt-pane-brand" class="hidden">
+                <p>Last step — Brand folder enhance.</p>
+                <label>
+                  <span>Brand system prompt</span>
+                  <textarea id="content_gen_brand_system" rows="6"></textarea>
+                </label>
+                <label>
+                  <span>Brand user prompt</span>
+                  <textarea id="content_gen_brand_user" rows="14"></textarea>
+                </label>
+              </div>
             </div>
             <div id="prompt-pane-reports" class="hidden">
               <label>
@@ -726,12 +773,27 @@
       const passwordInput = document.getElementById("password");
       let defaults = null;
       let promptTab = "meta";
+      let contentPromptTab = "brief";
+      const contentPromptSteps = ["brief", "nlp", "write", "brand"];
+      const contentPromptFields = contentPromptSteps.flatMap((id) => [
+        "content_gen_" + id + "_system",
+        "content_gen_" + id + "_user",
+      ]);
       const promptFields = {
         meta: ["meta_system_prompt", "meta_title_prompt", "meta_description_prompt"],
         topical: ["topical_map_prompt"],
-        content: ["content_gen_prompt"],
+        content: contentPromptFields,
         reports: ["report_executive_summary_prompt"],
       };
+      function setContentPromptTab(tab) {
+        contentPromptTab = tab;
+        document.querySelectorAll("#content-prompt-tabs button").forEach((b) => {
+          b.classList.toggle("active", b.dataset.contentPrompt === tab);
+        });
+        contentPromptSteps.forEach((id) => {
+          document.getElementById("content-prompt-pane-" + id).classList.toggle("hidden", id !== tab);
+        });
+      }
       function setPromptTab(tab) {
         promptTab = tab;
         document.querySelectorAll("#prompt-tabs button").forEach((b) => {
@@ -901,7 +963,9 @@
         document.getElementById("meta_title_prompt").value = json.prompts.meta_title_prompt || "";
         document.getElementById("meta_description_prompt").value = json.prompts.meta_description_prompt || "";
         document.getElementById("topical_map_prompt").value = json.prompts.topical_map_prompt || "";
-        document.getElementById("content_gen_prompt").value = json.prompts.content_gen_prompt || "";
+        contentPromptFields.forEach((id) => {
+          document.getElementById(id).value = json.prompts[id] || "";
+        });
         document.getElementById("report_executive_summary_prompt").value = json.prompts.report_executive_summary_prompt || "";
         defaults = json.defaults;
       }
@@ -1445,7 +1509,14 @@
               meta_title_prompt: document.getElementById("meta_title_prompt").value,
               meta_description_prompt: document.getElementById("meta_description_prompt").value,
               topical_map_prompt: document.getElementById("topical_map_prompt").value,
-              content_gen_prompt: document.getElementById("content_gen_prompt").value,
+              content_gen_brief_system: document.getElementById("content_gen_brief_system").value,
+              content_gen_brief_user: document.getElementById("content_gen_brief_user").value,
+              content_gen_nlp_system: document.getElementById("content_gen_nlp_system").value,
+              content_gen_nlp_user: document.getElementById("content_gen_nlp_user").value,
+              content_gen_write_system: document.getElementById("content_gen_write_system").value,
+              content_gen_write_user: document.getElementById("content_gen_write_user").value,
+              content_gen_brand_system: document.getElementById("content_gen_brand_system").value,
+              content_gen_brand_user: document.getElementById("content_gen_brand_user").value,
               report_executive_summary_prompt: document.getElementById("report_executive_summary_prompt").value,
             }),
           });
@@ -1462,9 +1533,18 @@
         setPromptTab(btn.dataset.promptTab);
       });
 
+      document.getElementById("content-prompt-tabs").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-content-prompt]");
+        if (!btn) return;
+        setContentPromptTab(btn.dataset.contentPrompt);
+      });
+
       document.getElementById("restore").onclick = () => {
         if (!defaults) return;
-        (promptFields[promptTab] || []).forEach((id) => {
+        const ids = promptTab === "content"
+          ? ["content_gen_" + contentPromptTab + "_system", "content_gen_" + contentPromptTab + "_user"]
+          : (promptFields[promptTab] || []);
+        ids.forEach((id) => {
           document.getElementById(id).value = defaults[id] || "";
         });
         show("Restored built-in defaults for this tab — click Save to apply.", "ok");
